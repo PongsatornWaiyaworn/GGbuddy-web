@@ -1,0 +1,41 @@
+.sidebar {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 50px;
+    background-color: #1a202c;
+    color: white;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.sidebar img{
+    margin-top: 20px;
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    background: none;
+    border: none;
+    color: white;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+}
+
+.nav-button:hover {
+    background-color: #2d3748;
+}
+
+.nav-button.active {
+    background-color: #4a5568;
+}
