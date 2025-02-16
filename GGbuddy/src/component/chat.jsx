@@ -9,6 +9,14 @@ export default function Chat() {
   const chatWindowRef = useRef(null);
   const [username] = useState("user1");
 
+  const scrollToBottom = () => {
+    if (chatWindowRef.current) {
+      setTimeout(() => {
+        chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+      }, 100);
+    }
+  };
+
   useEffect(() => {
     fetch("http://localhost:8080/api/chats?user=" + username)
       .then((res) => res.json())
@@ -16,6 +24,9 @@ export default function Chat() {
         setChats(data);
         if (data.length > 0) {
           setActiveChat(data[0]);
+          setTimeout(() => {
+            scrollToBottom();
+          }, 0);
         }
       })
       .catch((err) => console.error("Error fetching chats:", err));
@@ -65,6 +76,11 @@ export default function Chat() {
 
   const joinChat = (chat) => {
     setActiveChat(chat);
+
+    setTimeout(() => {
+      scrollToBottom();
+    }, 0);
+
     if (ws && ws.readyState === WebSocket.OPEN) {
       if (message.trim()) {
         ws.send(JSON.stringify({ room: chat.id, username, type: "join" }));
@@ -92,6 +108,9 @@ export default function Chat() {
         }));
         setMessage("");
       }
+      setTimeout(() => {
+        scrollToBottom();
+      }, 0);
     }
   };
 
@@ -105,13 +124,25 @@ export default function Chat() {
     }
   };
 
+  const formatShortDateThai = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleString("th-TH", {
+      day: "2-digit",
+      month: "short",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).replace(" ", ""); 
+  };  
+
   return (
     <div className="chat-container">
       <div className="chat-sidebar">
         {chats.map((chat) => (
           <button
             key={chat.id || chat.name}
-            className={`chat-item ${activeChat?._id === chat.id ? "active" : ""}`}
+            className={`chat-item ${activeChat?.id === chat.id ? "active" : ""}`} 
             onClick={() => joinChat(chat)}
           >
             {chat.name}
@@ -124,8 +155,22 @@ export default function Chat() {
           <div>
             <div className="chat-messages">
               {(activeChat.messages || []).map((msg, index) => (
-                <div key={index} className={`chat-message ${msg.sender_id === username ? "user" : ""}`}>
-                  {msg.content}
+                <div key={index}>
+                  {msg.sender_id !== username && (
+                    <div className="message-info">
+                      จาก {msg.sender_id} {formatShortDateThai(msg.timestamp)}
+                    </div>
+                  )}
+
+                  {msg.sender_id === username && (
+                    <div className="message-info-user">
+                      {formatShortDateThai(msg.timestamp)}
+                    </div>
+                  )}
+
+                  <div className={`chat-message ${msg.sender_id === username ? "user" : ""}`}>
+                    {msg.content}
+                  </div>
                 </div>
               ))}
             </div>
@@ -133,9 +178,9 @@ export default function Chat() {
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder="message..."
                 rows={3}
-                onKeyDown={handleKeyDown} 
+                onKeyDown={handleKeyDown}
               />
               <button onClick={sendMessage} disabled={!message.trim()} className={message.trim() ? "active" : "disabled"}>
                 Send
@@ -146,6 +191,7 @@ export default function Chat() {
           <p>Select a chat to start messaging</p>
         )}
       </div>
+
     </div>
   );
 }

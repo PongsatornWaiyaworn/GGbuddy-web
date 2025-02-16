@@ -12,6 +12,7 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
     max-height: 100vh;
 }
 
@@ -74,6 +75,17 @@
     margin-right: auto; 
     float: left; 
 }
+
+.message-info {
+    font-size: 12px;
+    margin: 8px;
+}
+
+.message-info-user {
+    font-size: 12px;
+    margin: 8px;
+    text-align: right;
+}
   
 .chat-input {
     display: flex;
@@ -124,3 +136,11 @@
 .chat-input button:hover:not(.disabled) {
     background-color: #0056b3;
 }
+
+.chat-item.active {
+    background-color: #ecf0f1; 
+    width: 1000vh;
+    color: rgb(58, 58, 58);
+    font-weight: bold;
+  }
+  
