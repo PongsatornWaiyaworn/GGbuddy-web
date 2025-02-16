@@ -2,7 +2,9 @@ package utils
 
 import (
 	"errors"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -19,7 +21,7 @@ func GenerateJWT(userID string) (string, error) {
 
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expirationTime),
-		Subject:   userID,
+		Subject:   userID, // ใช้ Subject เก็บ userID
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -31,22 +33,34 @@ func GenerateJWT(userID string) (string, error) {
 	return tokenString, nil
 }
 
-func ValidateToken(tokenStr string) (*jwt.Token, error) {
-	secretKey := os.Getenv("JWT_SECRET")
-	if secretKey == "" {
-		return nil, errors.New("missing JWT_SECRET in environment variables")
+var jwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
+
+// ตรวจสอบว่า request มี token ที่ถูกต้องหรือไม่
+func ValidateToken(r *http.Request) (string, error) {
+	// ตรวจสอบว่า authorization header มีข้อมูลหรือไม่
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Authorization header is missing")
 	}
 
-	token, err := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-		return []byte(secretKey), nil
+	// เอาแค่ token ออกจาก header
+	tokenString := strings.Split(authHeader, " ")[1]
+
+	// พยายามตรวจสอบและถอดรหัส token
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
 	})
 
-	if err != nil {
-		return nil, err
+	// หากไม่สามารถถอดรหัสหรือ token ผิดพลาด
+	if err != nil || !token.Valid {
+		return "", errors.New("Invalid token")
 	}
 
-	return token, nil
+	// ดึง userID จาก claims โดยตรง
+	userID, ok := claims["sub"].(string) // ใช้ "sub" ใน claims
+	if !ok {
+		return "", errors.New("Invalid token structure")
+	}
+	return userID, nil
 }

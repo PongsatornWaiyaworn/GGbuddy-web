@@ -1,51 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"ggbuddy/database"
 	"ggbuddy/models"
 	"ggbuddy/utils"
-	"log"
 	"net/http"
-	"os"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var client *mongo.Client
-
-func init() {
-	var err error
-	client, err = connectToMongoDB()
-	if err != nil {
-		log.Fatal("Error connecting to MongoDB", err)
-	}
-}
-
-func connectToMongoDB() (*mongo.Client, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: No .env file found")
-	}
-
-	uri := os.Getenv("MONGO_URI")
-	if uri == "" {
-		log.Fatal("Error: MONGO_URI is not set in .env")
-	}
-
-	client, err := mongo.Connect(nil, options.Client().ApplyURI(uri))
-	if err != nil {
-		return nil, err
-	}
-	err = client.Ping(nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
-}
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
@@ -55,16 +20,34 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hash password
+	if user.Username == "" || user.Email == "" || user.Password == "" {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
 		return
 	}
 
-	collection := client.Database("test").Collection("users")
+	collection := database.GetCollection("test", "users")
 	user.Password = string(hashedPassword)
-	_, err = collection.InsertOne(nil, user)
+
+	var existingUser models.User
+	err = collection.FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&existingUser)
+	if err == nil {
+		http.Error(w, "Username already taken", http.StatusConflict)
+		return
+	}
+
+	err = collection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existingUser)
+	if err == nil {
+		http.Error(w, "Email already registered", http.StatusConflict)
+		return
+	}
+
+	_, err = collection.InsertOne(context.TODO(), user)
 	if err != nil {
 		http.Error(w, "Error saving user", http.StatusInternalServerError)
 		return
@@ -82,9 +65,20 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := client.Database("test").Collection("users")
+	collection := database.GetCollection("test", "users")
 	var dbUser models.User
-	err = collection.FindOne(nil, bson.M{"email": user.Email}).Decode(&dbUser)
+	var filter bson.M
+
+	if user.Email != "" {
+		filter = bson.M{"email": user.Email}
+	} else if user.Username != "" {
+		filter = bson.M{"username": user.Username}
+	} else {
+		http.Error(w, "Email or Username is required", http.StatusBadRequest)
+		return
+	}
+
+	err = collection.FindOne(nil, filter).Decode(&dbUser)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
@@ -96,7 +90,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenString, err := utils.GenerateJWT(dbUser.ID)
+	tokenString, err := utils.GenerateJWT(dbUser.ID.Hex())
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return

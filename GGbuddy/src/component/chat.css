@@ -63,9 +63,16 @@
 }
 
 .chat-message.user {
-    background-color: #cce7ff;  
-    text-align: right;          
-    margin-left: auto;          
+    background-color: #cce7ff;
+    text-align: right;
+    margin-left: auto; 
+    float: right; 
+}
+
+.chat-message:not(.user) {
+    text-align: left;
+    margin-right: auto; 
+    float: left; 
 }
   
 .chat-input {
