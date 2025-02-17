@@ -32,19 +32,24 @@ func main() {
 		AllowCredentials: true,
 	})
 
-	r.HandleFunc("/ws", handlers.WebSocketHandler)
+	r.HandleFunc("/ws", handlers.WebSocketHandler_chat)
+	r.HandleFunc("/ws-match", handlers.WebSocketHandler_match)
 	r.HandleFunc("/login", handlers.LoginHandler)
 	r.HandleFunc("/register", handlers.RegisterHandler)
 	r.HandleFunc("/groups", handlers.CreateGroupHandler).Methods("POST")
 	r.HandleFunc("/api/chats", handlers.GetUserChatsHandler).Methods("GET")
 	r.HandleFunc("/messages/send", handlers.SendMessageHandler).Methods("POST")
 	r.HandleFunc("/messages", handlers.GetMessagesHandler).Methods("GET")
+	r.HandleFunc("/match", handlers.CreateMatchingCriteriaHandler).Methods("POST")
 
 	r.HandleFunc("/api/test", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"message": "CORS enabled for all ports!"}`))
 	}).Methods("GET")
+
+	go handlers.Broadcaster()
+	go handlers.Broadcaster_match()
 
 	handler := c.Handler(r)
 

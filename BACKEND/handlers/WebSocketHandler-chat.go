@@ -21,7 +21,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+func WebSocketHandler_chat(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Failed to upgrade connection", http.StatusInternalServerError)

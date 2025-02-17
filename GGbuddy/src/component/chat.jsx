@@ -7,7 +7,7 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [ws, setWs] = useState(null);
   const chatWindowRef = useRef(null);
-  const [username] = useState("user1");
+  const [username] = useState("user2");
 
   const scrollToBottom = () => {
     if (chatWindowRef.current) {
@@ -21,9 +21,12 @@ export default function Chat() {
     fetch("http://localhost:8080/api/chats?user=" + username)
       .then((res) => res.json())
       .then((data) => {
-        setChats(data);
-        if (data.length > 0) {
-          setActiveChat(data[0]);
+        const sortedChats = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
+        setChats(sortedChats);
+  
+        if (sortedChats.length > 0) {
+          setActiveChat(sortedChats[0]);
           setTimeout(() => {
             scrollToBottom();
           }, 0);
@@ -31,6 +34,7 @@ export default function Chat() {
       })
       .catch((err) => console.error("Error fetching chats:", err));
   }, [username]);
+  
 
   useEffect(() => {
     if (activeChat && activeChat.id) {
