@@ -41,6 +41,7 @@ func main() {
 	r.HandleFunc("/messages/send", handlers.SendMessageHandler).Methods("POST")
 	r.HandleFunc("/messages", handlers.GetMessagesHandler).Methods("GET")
 	r.HandleFunc("/match", handlers.CreateMatchingCriteriaHandler).Methods("POST")
+	r.HandleFunc("/matching/delete", handlers.DeleteMatchingCriteriaHandler).Methods("DELETE")
 
 	r.HandleFunc("/api/test", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

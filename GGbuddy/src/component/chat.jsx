@@ -7,7 +7,7 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [ws, setWs] = useState(null);
   const chatWindowRef = useRef(null);
-  const [username] = useState("user2");
+  const [username] = useState("user1");
 
   const scrollToBottom = () => {
     if (chatWindowRef.current) {
