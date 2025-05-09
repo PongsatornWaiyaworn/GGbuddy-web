@@ -31,7 +31,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.GetCollection("test", "users")
+	collection := database.GetCollection("ggbuddy", "users")
 	user.Password = string(hashedPassword)
 
 	var existingUser models.User
@@ -65,7 +65,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.GetCollection("test", "users")
+	collection := database.GetCollection("ggbuddy", "users")
 	var dbUser models.User
 	var filter bson.M
 
@@ -97,4 +97,44 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+}
+
+type ChangePasswordRequest struct {
+	Username    string `json:"username"`
+	NewPassword string `json:"new_password"`
+}
+
+func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var req ChangePasswordRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Username == "" || req.NewPassword == "" {
+		http.Error(w, "Username and new password are required", http.StatusBadRequest)
+		return
+	}
+
+	collection := database.GetCollection("ggbuddy", "users")
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Failed to hash new password", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = collection.UpdateOne(
+		context.Background(),
+		bson.M{"username": req.Username},
+		bson.M{"$set": bson.M{"password": string(hashedPassword)}},
+	)
+	if err != nil {
+		http.Error(w, "Failed to update password", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Password updated successfully"})
 }
