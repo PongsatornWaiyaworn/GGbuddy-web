@@ -7,7 +7,7 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [ws, setWs] = useState(null);
   const chatWindowRef = useRef(null);
-  const [username] = useState("user1");
+  const [username] = useState("user02");
 
   const scrollToBottom = () => {
     if (chatWindowRef.current) {
@@ -149,6 +149,7 @@ export default function Chat() {
             className={`chat-item ${activeChat?.id === chat.id ? "active" : ""}`} 
             onClick={() => joinChat(chat)}
           >
+            <img width={'40px'} src="https://static.vecteezy.com/system/resources/previews/019/017/536/original/valorant-logo-transparent-free-png.png" alt="" />
             {chat.name}
           </button>
         ))}
@@ -161,14 +162,19 @@ export default function Chat() {
               {(activeChat.messages || []).map((msg, index) => (
                 <div key={index}>
                   {msg.sender_id !== username && (
-                    <div className="message-info">
-                      จาก {msg.sender_id} {formatShortDateThai(msg.timestamp)}
+                    <div>
+                      <div className="message-info">
+                        จาก {msg.sender_id} 
+                        {formatShortDateThai(msg.timestamp)}
+                      </div>
                     </div>
                   )}
 
                   {msg.sender_id === username && (
-                    <div className="message-info-user">
-                      {formatShortDateThai(msg.timestamp)}
+                    <div>
+                      <div className="message-info-user">
+                        {formatShortDateThai(msg.timestamp)}
+                      </div>
                     </div>
                   )}
 

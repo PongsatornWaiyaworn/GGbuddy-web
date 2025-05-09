@@ -44,6 +44,8 @@ func main() {
 	r.HandleFunc("/matching/delete", handlers.DeleteMatchingCriteriaHandler).Methods("DELETE")
 	r.HandleFunc("/send-otp", handlers.SendOTPHandler).Methods("POST")
 	r.HandleFunc("/verify-otp", handlers.VerifyOTPHandler).Methods("POST")
+	r.HandleFunc("/block", handlers.BlockUserHandler).Methods("POST")
+	r.HandleFunc("/blocked-list/{blocker_id}", handlers.GetBlockedUsersHandler).Methods("GET")
 
 	r.HandleFunc("/api/test", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

@@ -17,7 +17,7 @@ func DeleteMatchingCriteriaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.GetCollection("test", "waiting_match")
+	collection := database.GetCollection("ggbuddy", "waiting_match")
 
 	filter := bson.M{"username": username}
 

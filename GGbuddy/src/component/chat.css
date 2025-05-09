@@ -6,14 +6,22 @@
 
 .chat-sidebar {
     width: 250px;
-    background: #2c3e50;
+    background: #deb331;
     color: white;
     padding: 20px;
     display: flex;
     flex-direction: column;
+    /* justify-items: center; */
+    /* align-items: center; */
     overflow-y: auto;
     overflow-x: hidden;
     max-height: 100vh;
+}
+
+.chat-sidebar button {
+    display: flex;
+    justify-items: center;
+    align-items: center;
 }
 
 .chat-item {
@@ -64,7 +72,7 @@
 }
 
 .chat-message.user {
-    background-color: #cce7ff;
+    background-color: #ffe082;
     text-align: right;
     margin-left: auto; 
     float: right; 

@@ -22,9 +22,29 @@ func CreateMatchingCriteriaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.GetCollection("test", "waiting_match")
-	groupCollection := database.GetCollection("test", "groups")
+	collection := database.GetCollection("ggbuddy", "waiting_match")
+	groupCollection := database.GetCollection("ggbuddy", "groups")
+	blockCollection := database.GetCollection("ggbuddy", "blocked_users")
 
+	blockedUsersMap := make(map[string]bool)
+	blockFilter := bson.M{"blocker_id": criteria.Username}
+	blockCursor, err := blockCollection.Find(context.Background(), blockFilter)
+	if err != nil {
+		http.Error(w, "Error fetching blocked users", http.StatusInternalServerError)
+		return
+	}
+	defer blockCursor.Close(context.Background())
+
+	for blockCursor.Next(context.Background()) {
+		var block struct {
+			BlockedID string `bson:"blocked_id"`
+		}
+		if err := blockCursor.Decode(&block); err == nil {
+			blockedUsersMap[block.BlockedID] = true
+		}
+	}
+
+	// ✅ ดึงผู้เล่นที่มี preferred_game เหมือนกัน
 	filter := bson.M{"preferred_game": criteria.PreferredGame}
 	cursor, err := collection.Find(context.Background(), filter)
 	if err != nil {
@@ -37,10 +57,15 @@ func CreateMatchingCriteriaHandler(w http.ResponseWriter, r *http.Request) {
 	for cursor.Next(context.Background()) {
 		var player models.MatchingCriteria
 		if err := cursor.Decode(&player); err == nil {
+			// ✅ ข้ามถ้า player ถูก criteria.Username บล็อค
+			if blockedUsersMap[player.Username] {
+				continue
+			}
 			waitingPlayers = append(waitingPlayers, player)
 		}
 	}
 
+	// ✅ ตรวจว่ามีพอจะสร้างกลุ่มหรือไม่
 	if len(waitingPlayers)+1 >= criteria.GroupSize {
 		var members []string
 		for _, player := range waitingPlayers {

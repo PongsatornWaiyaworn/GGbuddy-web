@@ -54,7 +54,7 @@ func WebSocketHandler_chat(w http.ResponseWriter, r *http.Request) {
 		msg.GroupID = groupID
 		msg.Timestamp = time.Now().Format(time.RFC3339)
 
-		messageCollection := database.GetCollection("test", "messages")
+		messageCollection := database.GetCollection("ggbuddy", "messages")
 		_, err = messageCollection.InsertOne(context.Background(), msg)
 		if err != nil {
 			fmt.Println("Error saving message:", err)

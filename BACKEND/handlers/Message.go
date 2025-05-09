@@ -27,7 +27,7 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	group.CreatedAt = time.Now().Format(time.RFC3339)
 
-	collection := database.GetCollection("test", "groups")
+	collection := database.GetCollection("ggbuddy", "groups")
 	_, err = collection.InsertOne(context.Background(), group)
 	if err != nil {
 		http.Error(w, "Error saving group", http.StatusInternalServerError)
@@ -45,7 +45,7 @@ func GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupCollection := database.GetCollection("test", "groups")
+	groupCollection := database.GetCollection("ggbuddy", "groups")
 	cursor, err := groupCollection.Find(context.Background(), bson.M{"members": username})
 	if err != nil {
 		http.Error(w, "Error fetching chat groups", http.StatusInternalServerError)
@@ -82,7 +82,7 @@ func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	msg.Timestamp = time.Now().Format(time.RFC3339)
 
-	collection := database.GetCollection("test", "groups")
+	collection := database.GetCollection("ggbuddy", "groups")
 	var group models.Group
 	err = collection.FindOne(context.Background(), bson.M{"_id": msg.GroupID}).Decode(&group)
 	if err != nil {
@@ -90,7 +90,7 @@ func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageCollection := database.GetCollection("test", "messages")
+	messageCollection := database.GetCollection("ggbuddy", "messages")
 	_, err = messageCollection.InsertOne(context.Background(), msg)
 	if err != nil {
 		http.Error(w, "Error saving message", http.StatusInternalServerError)
@@ -104,7 +104,7 @@ func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	groupID := r.URL.Query().Get("group_id")
 
-	collection := database.GetCollection("test", "groups")
+	collection := database.GetCollection("ggbuddy", "groups")
 	var group models.Group
 	groupIDObj, err := primitive.ObjectIDFromHex(groupID)
 	if err != nil {
@@ -117,7 +117,7 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageCollection := database.GetCollection("test", "messages")
+	messageCollection := database.GetCollection("ggbuddy", "messages")
 	cursor, err := messageCollection.Find(context.Background(), bson.M{"group_id": groupIDObj})
 	if err != nil {
 		http.Error(w, "Error retrieving messages", http.StatusInternalServerError)

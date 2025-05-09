@@ -28,7 +28,7 @@ func SendOTPHandler(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(5 * time.Minute)
 
-	collection := database.GetCollection("test", "otps")
+	collection := database.GetCollection("ggbuddy", "otps")
 
 	_, err := collection.DeleteMany(context.Background(), bson.M{"email": req.Email})
 	if err != nil {
@@ -68,7 +68,7 @@ func VerifyOTPHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.GetCollection("test", "otps")
+	collection := database.GetCollection("ggbuddy", "otps")
 
 	var stored models.OTP
 	err := collection.FindOne(context.Background(), bson.M{"email": req.Email, "code": req.Code}).Decode(&stored)

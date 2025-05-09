@@ -59,8 +59,8 @@ func WebSocketHandler_match(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkMatchingCriteria(criteria models.MatchingCriteria) (*primitive.ObjectID, error) {
-	collection := database.GetCollection("test", "waiting_match")
-	groupCollection := database.GetCollection("test", "groups")
+	collection := database.GetCollection("ggbuddy", "waiting_match")
+	groupCollection := database.GetCollection("ggbuddy", "groups")
 
 	filter := bson.M{"preferred_game": criteria.PreferredGame}
 	cursor, err := collection.Find(context.Background(), filter)
@@ -150,7 +150,7 @@ func cancelIfTimeout(username string) {
 	// รอ 5 นาที
 	time.Sleep(5 * time.Minute)
 
-	collection := database.GetCollection("test", "waiting_match")
+	collection := database.GetCollection("ggbuddy", "waiting_match")
 	_, err := collection.DeleteOne(context.Background(), bson.M{"username": username})
 	if err != nil {
 		fmt.Println("Error cancelling match:", err)

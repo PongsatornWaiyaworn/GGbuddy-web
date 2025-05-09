@@ -6,7 +6,7 @@ function App() {
 
   return (
     <>
-      <Nav />
+      {/* <Nav /> */}
       <Chat />
     </>
   )
