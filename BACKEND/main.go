@@ -24,7 +24,6 @@ func main() {
 
 	r := mux.NewRouter()
 
-	// ตั้งค่า CORS ให้อนุญาตทุกพอร์ต
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
@@ -46,6 +45,11 @@ func main() {
 	r.HandleFunc("/verify-otp", handlers.VerifyOTPHandler).Methods("POST")
 	r.HandleFunc("/block", handlers.BlockUserHandler).Methods("POST")
 	r.HandleFunc("/blocked-list/{blocker_id}", handlers.GetBlockedUsersHandler).Methods("GET")
+	r.HandleFunc("/change-password", handlers.ChangePasswordHandler).Methods("POST")
+	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")
+	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")
+	r.HandleFunc("/profile", handlers.GetProfileHandler).Methods("GET")
+	r.HandleFunc("/profile", handlers.UpdateProfileHandler).Methods("PUT")
 
 	r.HandleFunc("/api/test", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
