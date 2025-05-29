@@ -7,6 +7,7 @@ import (
 
 	"ggbuddy/database"
 	"ggbuddy/handlers"
+	"ggbuddy/middleware"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -21,15 +22,9 @@ func main() {
 	}
 
 	go handlers.Broadcaster()
+	go handlers.Broadcaster_match()
 
 	r := mux.NewRouter()
-
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		AllowCredentials: true,
-	})
 
 	r.HandleFunc("/ws", handlers.WebSocketHandler_chat)
 	r.HandleFunc("/ws-match", handlers.WebSocketHandler_match)
@@ -47,23 +42,24 @@ func main() {
 	r.HandleFunc("/blocked-list/{blocker_id}", handlers.GetBlockedUsersHandler).Methods("GET")
 	r.HandleFunc("/change-password", handlers.ChangePasswordHandler).Methods("POST")
 	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")
-	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")
 	r.HandleFunc("/profile", handlers.GetProfileHandler).Methods("GET")
 	r.HandleFunc("/profile", handlers.UpdateProfileHandler).Methods("PUT")
 
-	r.HandleFunc("/api/test", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message": "CORS enabled for all ports!"}`))
-	}).Methods("GET")
+	authMiddleware := middleware.AuthMiddleware
 
-	go handlers.Broadcaster()
-	go handlers.Broadcaster_match()
+	handlerWithAuth := authMiddleware(r)
 
-	handler := c.Handler(r)
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
 
-	fmt.Println("Server started at http://localhost:8080")
-	err = http.ListenAndServe(":8080", handler)
+	handler := corsMiddleware.Handler(handlerWithAuth)
+
+	fmt.Println("Server started at http://localhost:3000")
+	err = http.ListenAndServe(":3000", handler)
 	if err != nil {
 		log.Fatal(err)
 	}

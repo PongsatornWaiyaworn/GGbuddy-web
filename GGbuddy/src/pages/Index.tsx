@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Sidebar from "@/components/Sidebar";
 import { Link } from "react-router-dom";
+import { useAuth } from "../AuthContext";
 import { useState } from "react";
 
 const Index = () => {
   // ใช้ useState เพื่อตรวจสอบสถานะการล็อกอิน
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // สถานะของผู้ใช้ (ล็อกอินหรือยัง)
+  const { isLoggedIn } = useAuth();
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-900 via-red-900 to-orange-800">

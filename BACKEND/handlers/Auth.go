@@ -7,75 +7,110 @@ import (
 	"ggbuddy/models"
 	"ggbuddy/utils"
 	"net/http"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var payload struct {
+		User    models.User    `json:"user"`
+		Profile models.Profile `json:"profile"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+
+	user := payload.User
+	profile := payload.Profile
 
 	if user.Username == "" || user.Email == "" || user.Password == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
 	}
 
+	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
 		return
 	}
-
-	collection := database.GetCollection("ggbuddy", "users")
 	user.Password = string(hashedPassword)
 
-	var existingUser models.User
-	err = collection.FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&existingUser)
-	if err == nil {
+	usersCol := database.GetCollection("ggbuddy", "users")
+	profileCol := database.GetCollection("ggbuddy", "profiles")
+
+	var existing models.User
+	if err := usersCol.FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&existing); err == nil {
 		http.Error(w, "Username already taken", http.StatusConflict)
 		return
 	}
-
-	err = collection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existingUser)
-	if err == nil {
+	if err := usersCol.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existing); err == nil {
 		http.Error(w, "Email already registered", http.StatusConflict)
 		return
 	}
 
-	_, err = collection.InsertOne(context.TODO(), user)
+	user.ID = primitive.NewObjectID()
+
+	profile.ID = primitive.NewObjectID()
+	profile.UserID = user.ID
+	profile.Username = user.Username
+	profile.Timestamp = time.Now()
+
+	if profile.Img == "" {
+		http.Error(w, "Missing profile image URL", http.StatusBadRequest)
+		return
+	}
+
+	_, err = profileCol.InsertOne(context.TODO(), profile)
+	if err != nil {
+		http.Error(w, "Error saving profile", http.StatusInternalServerError)
+		return
+	}
+
+	user.ProfileID = &profile.ID
+	_, err = usersCol.InsertOne(context.TODO(), user)
 	if err != nil {
 		http.Error(w, "Error saving user", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User and profile created successfully",
+	})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var credentials struct {
+		Identifier string `json:"identifier"`
+		Password   string `json:"password"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 
+	if credentials.Identifier == "" || credentials.Password == "" {
+		http.Error(w, "Identifier and Password required", http.StatusBadRequest)
+		return
+	}
+
 	collection := database.GetCollection("ggbuddy", "users")
 	var dbUser models.User
-	var filter bson.M
 
-	if user.Email != "" {
-		filter = bson.M{"email": user.Email}
-	} else if user.Username != "" {
-		filter = bson.M{"username": user.Username}
-	} else {
-		http.Error(w, "Email or Username is required", http.StatusBadRequest)
-		return
+	filter := bson.M{
+		"$or": []bson.M{
+			{"email": credentials.Identifier},
+			{"username": credentials.Identifier},
+		},
 	}
 
 	err = collection.FindOne(nil, filter).Decode(&dbUser)
@@ -84,7 +119,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(credentials.Password))
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return

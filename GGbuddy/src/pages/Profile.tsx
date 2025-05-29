@@ -22,7 +22,7 @@ const Profile = () => {
     facebookurl: 'https://facebook.com/teekk',
     lineurl: 'https://line.me/ti/p/teekk',
     otherurl: 'https://twitch.tv/teekk',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+    img: 'https://randomuser.me/api/portraits/men/32.jpg'
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -88,12 +88,12 @@ const Profile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Avatar Section */}
+              {/* img Section */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <div className="w-24 h-24 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                    {profile.avatar ? (
-                      <img src={profile.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                    {profile.img ? (
+                      <img src={profile.img} alt="img" className="w-full h-full rounded-full object-cover" />
                     ) : (
                       profile.displayname.charAt(0).toUpperCase()
                     )}

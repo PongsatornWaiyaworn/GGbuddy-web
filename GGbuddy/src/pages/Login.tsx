@@ -5,19 +5,49 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
+import { useAuth } from "../AuthContext";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: ''
   });
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();  
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
-    // Mock login success - redirect to profile
-    navigate('/profile');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData) 
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        setErrorMessage(errorData || 'เกิดข้อผิดพลาดในการล็อกอิน');
+        return;
+      }
+
+      const data = await response.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        login();      
+        navigate('/'); 
+      } else {
+        setErrorMessage('ไม่พบ token จากเซิร์ฟเวอร์');
+      }
+
+    } catch (error) {
+      setErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+      console.error('Login error:', error);
+    }
   };
 
   return (
@@ -42,12 +72,14 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-white">อีเมล</Label>
+              <Label htmlFor="identifier" className="text-white">
+                อีเมล หรือ ชื่อผู้ใช้
+              </Label>
               <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                id="identifier"
+                type="text"
+                value={formData.identifier}
+                onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
                 className="bg-gray-800 border-gray-600 text-white"
                 required
               />
@@ -64,6 +96,10 @@ const Login = () => {
                 required
               />
             </div>
+
+            {errorMessage && (
+              <p className="text-red-500 text-sm">{errorMessage}</p>
+            )}
 
             <Button 
               type="submit" 

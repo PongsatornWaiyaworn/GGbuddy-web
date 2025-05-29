@@ -84,13 +84,13 @@ const TeamFinder = () => {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <Button
+                  {/* <Button
                     variant="outline"
                     onClick={() => setSelectedGame(null)}
                     className="border-white text-black hover:bg-white hover:text-orange-900"
                   >
                     ← กลับ
-                  </Button>
+                  </Button> */}
                   <h2 className="text-2xl font-bold text-white">
                     หาเพื่อน {games.find(g => g.id === selectedGame)?.name}
                   </h2>

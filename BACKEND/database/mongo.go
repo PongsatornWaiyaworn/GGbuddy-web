@@ -13,7 +13,7 @@ import (
 var Client *mongo.Client
 
 func ConnectToMongoDB() (*mongo.Client, error) {
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Println("Warning: No .env file found")
 	}
