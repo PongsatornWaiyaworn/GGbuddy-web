@@ -15,24 +15,26 @@ const Index = () => {
       
       <main className="flex-1 overflow-auto">
         {/* Hero Section */}
-        <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="min-h-screen flex items-center justify-center px-6 pt-10 sm:pt-20">
           <div className="max-w-4xl mx-auto text-center">
             <div className="mb-8">
-              <img 
+            <img 
                 src="/public/LOGO GGbuddy.png" 
                 alt="GGbuddy Logo" 
-                className="h-40 mx-auto mb-6"
+                className="h-20 sm:h-32 md:h-40 mx-auto mb-6 "  
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
               />
-              <h1 className="text-6xl font-bold text-white mb-6 leading-tight">
+
+              <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
                 เล่นเกมเหงาๆ<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-400">
                   ชวนใครดี?
                 </span>
               </h1>
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+
+              <p className="text-sm sm:text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                 เชื่อมต่อกับเพื่อนใหม่ผ่านเกมที่คุณชื่นชอบ
               </p>
             </div>

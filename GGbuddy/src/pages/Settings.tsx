@@ -132,7 +132,7 @@ const Settings = () => {
           </Card>
 
           {/* Block User */}
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+          {/* <Card className="bg-white/10 backdrop-blur-lg border-white/20">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <UserX /> บล็อกผู้ใช้
@@ -165,7 +165,7 @@ const Settings = () => {
                 </Button>
               </form>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Blocked Users */}
           <Card className="bg-white/10 backdrop-blur-lg border-white/20">
@@ -207,7 +207,7 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <div className="flex justify-between items-center p-4 bg-gray-800/50 rounded-lg">
-                <h4 className="text-white font-medium">ลบบัญชี</h4>
+                <h4 className="text-white font-medium">ลบบัญชี (การลบบัญชีจะเป็นการลบบัญชีถาวร)</h4>
                 <Button
                   className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
                   onClick={() => confirm(handleDeleteAccount)}

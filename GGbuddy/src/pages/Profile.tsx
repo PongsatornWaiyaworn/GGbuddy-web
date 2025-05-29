@@ -238,46 +238,6 @@ const Profile = () => {
               </h3>
             </div>
 
-            {showCropper && (
-              <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center px-4">
-                <div className="relative w-full max-w-md aspect-square bg-white rounded-lg overflow-hidden">
-                  <Cropper
-                    image={imageSrc}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={1}
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
-                    onCropComplete={(_, croppedAreaPixels) => {
-                      setCroppedAreaPixels(croppedAreaPixels);
-                    }}
-                  />
-                  <div className="absolute bottom-2 left-0 right-0 flex justify-between px-4">
-                    <Button
-                      onClick={async () => {
-                        try {
-                          const croppedImage = await getCroppedImg(
-                            imageSrc,
-                            croppedAreaPixels
-                          );
-                          const uploadedUrl = await uploadProfileImage(croppedImage, "profile.jpg");
-                          setProfile((prev) => (prev ? { ...prev, img: uploadedUrl } : prev));
-                          setShowCropper(false);
-                        } catch (err) {
-                          console.error("Error cropping image:", err);
-                        }
-                      }}
-                    >
-                      ยืนยัน
-                    </Button>
-                    <Button variant="ghost" onClick={() => setShowCropper(false)}>
-                      ยกเลิก
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Profile Form */}
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -473,6 +433,49 @@ const Profile = () => {
             </CardContent>
           </Card>
         </div>
+        {showCropper && (
+            <div className="fixed inset-0 bg-black bg-opacity-80 z-[9999] flex items-center justify-center px-4">
+              <div className="relative w-[90vw] max-w-3xl aspect-square bg-white rounded-lg overflow-hidden">
+              <div className="absolute inset-0">
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={(_, croppedAreaPixels) => {
+                    setCroppedAreaPixels(croppedAreaPixels);
+                  }}
+                />
+              </div>
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-10">
+                <Button
+                  className="bg-white text-black hover:bg-gray-200"
+                  onClick={async () => {
+                    try {
+                      const croppedImage = await getCroppedImg(
+                        imageSrc,
+                        croppedAreaPixels
+                      );
+                      const uploadedUrl = await uploadProfileImage(croppedImage, "profile.jpg");
+                      setProfile((prev) => (prev ? { ...prev, img: uploadedUrl } : prev));
+                      setShowCropper(false);
+                    } catch (err) {
+                      console.error("Error cropping image:", err);
+                    }
+                  }}
+                >
+                  ยืนยัน
+                </Button>
+                <Button variant="ghost" className="text-white" onClick={() => setShowCropper(false)}>
+                  ยกเลิก
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

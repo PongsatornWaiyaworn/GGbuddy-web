@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +17,39 @@ import { useAuth } from "../AuthContext";
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
+
+  // เพิ่ม ref เก็บ Sidebar element (ทั้ง desktop และ mobile)
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // ฟังก์ชันตรวจจับคลิกนอก sidebar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        // ถ้า sidebar desktop เปิดอยู่ ให้พับ
+        if (!isCollapsed) {
+          setIsCollapsed(true);
+        }
+        // ถ้า mobile menu เปิดอยู่ ให้ปิด
+        if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCollapsed, isMobileMenuOpen]);
 
   const menuItems = [
     { icon: Home, label: "หน้าแรก", path: "/" },
@@ -48,13 +77,24 @@ const Sidebar = () => {
 
   return (
     <>
+      <div className="lg:hidden fixed top-4 left-4 z-[5]">
+        <Button
+          variant="ghost"
+          className="text-white bg-black/50 hover:bg-black"
+          onClick={() => setIsMobileMenuOpen(true)}
+        >
+          <Menu size={24} />
+        </Button>
+      </div>
+
       <div
+        ref={sidebarRef} 
         className={cn(
-          "bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 flex flex-col shadow-2xl",
-          isCollapsed ? "w-16" : "w-64"
+          "fixed top-0 left-0 h-full z-[9999] bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-2xl transition-all duration-300",
+          isCollapsed ? "w-16" : "w-64",
+          "hidden lg:flex flex-col"
         )}
       >
-        {/* Header */}
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
             {!isCollapsed && (
@@ -78,7 +118,6 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -130,9 +169,75 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Modal Confirm Logout */}
+      {/* Mobile Sidebar */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[9999] lg:hidden">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-60"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div
+            ref={sidebarRef} // <-- ใส่ ref ที่ mobile sidebar ด้วย
+            className="absolute left-0 top-0 bottom-0 w-64 bg-gray-900 shadow-xl p-4"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-bold text-white">GGbuddy</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <ChevronLeft />
+              </Button>
+            </div>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              const disabled = !isLoggedIn && item.path !== "/";
+
+              return (
+                <Button
+                  key={item.path}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start text-left text-white hover:bg-gray-700 transition-colors",
+                    isActive && "bg-orange-700",
+                    disabled &&
+                      "opacity-50 cursor-not-allowed hover:bg-transparent"
+                  )}
+                  onClick={() => {
+                    handleNavigation(item.path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  disabled={disabled}
+                >
+                  <Icon size={20} className="mr-3" />
+                  <span>{item.label}</span>
+                </Button>
+              );
+            })}
+            {isLoggedIn && (
+              <div className="mt-6 border-t border-gray-600 pt-4">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-400 hover:bg-red-700"
+                  onClick={() => {
+                    setShowConfirmLogout(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <LogOut size={20} className="mr-3" />
+                  ออกจากระบบ
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showConfirmLogout && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-gray-900">
             <h2 className="text-lg font-semibold mb-4">ยืนยันการออกจากระบบ</h2>
             <p className="mb-6">คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?</p>

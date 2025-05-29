@@ -319,7 +319,7 @@ const Register = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full mt-4">สมัครสมาชิก</Button>
+              <Button type="submit" className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">สมัครสมาชิก</Button>
             </form>
           )}
 
@@ -345,7 +345,7 @@ const Register = () => {
                 >
                   ส่งรหัส OTP ใหม่
                 </Button> */}
-                <Button type="submit">ยืนยัน OTP</Button>
+                <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700" type="submit">ยืนยัน OTP</Button>
               </div>
             </form>
           )}
@@ -403,37 +403,6 @@ const Register = () => {
                       </div>
                       <h3 className="text-xl font-semibold text-white">{profile.displayname}</h3>
                     </div>
-                    {showCropper && (
-                      <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center px-4">
-                          <div className="relative w-full max-w-md aspect-square bg-white rounded-lg">
-                          <Cropper
-                            image={imageSrc}
-                            crop={crop}
-                            zoom={zoom}
-                            aspect={1}
-                            onCropChange={setCrop}
-                            onZoomChange={setZoom}
-                            onCropComplete={(_, croppedAreaPixels) => {
-                              setCroppedAreaPixels(croppedAreaPixels);
-                            }}
-                          />
-                          <div className="absolute bottom-2 left-0 right-0 flex justify-between px-4">
-                            <Button
-                              onClick={async () => {
-                                const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
-                                setProfile(prev => ({ ...prev, img: croppedImage }));
-                                setShowCropper(false);
-                              }}
-                            >
-                              ยืนยัน
-                            </Button>
-                            <Button variant="ghost" onClick={() => setShowCropper(false)}>
-                              ยกเลิก
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Profile Form */}
                     <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -548,7 +517,7 @@ const Register = () => {
                         </div>
                       </div>
 
-                      <Button type="submit" className="w-full mt-4" disabled={!isEditing} onClick={handleCreate}>
+                      <Button type="submit" className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700" disabled={!isEditing} onClick={handleCreate}>
                         สร้างเลย!
                       </Button>
                     </form>
@@ -571,6 +540,38 @@ const Register = () => {
           )}
         </CardContent>
       </Card>
+
+      {showCropper && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-[9999] flex items-center justify-center px-4">
+          <div className="relative w-[90vw] max-w-3xl aspect-square bg-white rounded-lg overflow-hidden">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, croppedAreaPixels) => {
+                setCroppedAreaPixels(croppedAreaPixels);
+              }}
+            />
+            <div className="absolute bottom-2 left-0 right-0 flex justify-between px-4">
+              <Button
+                onClick={async () => {
+                  const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
+                  setProfile(prev => ({ ...prev, img: croppedImage }));
+                  setShowCropper(false);
+                }}
+              >
+                ยืนยัน
+              </Button>
+              <Button variant="ghost" onClick={() => setShowCropper(false)}>
+                ยกเลิก
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
