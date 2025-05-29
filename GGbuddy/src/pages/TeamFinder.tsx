@@ -47,7 +47,7 @@ const TeamFinder = () => {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-900 via-red-900 to-orange-800">
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
       <Sidebar />
       
       <main className="flex-1 overflow-auto p-6">

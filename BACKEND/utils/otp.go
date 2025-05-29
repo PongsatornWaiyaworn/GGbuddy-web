@@ -4,7 +4,6 @@ import (
 	"net/smtp"
 )
 
-// เปลี่ยนชื่อฟังก์ชันจาก sendEmail เป็น SendEmail
 func SendEmail(to string, otp string) error {
 	from := "pongsatorn291047@gmail.com"
 	password := "ojwhicmgzfvrcgfg" // App Password

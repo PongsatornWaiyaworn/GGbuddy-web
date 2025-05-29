@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -31,20 +32,25 @@ func validateJWTToken(tokenString string) (bool, error) {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("AuthMiddleware: Path =", r.URL.Path)
+
 		noAuthPaths := map[string]bool{
 			"/login":      true,
 			"/register":   true,
 			"/send-otp":   true,
 			"/verify-otp": true,
+			"/upload-s3":  true,
 		}
 
 		if noAuthPaths[r.URL.Path] {
+			fmt.Println("No auth required for", r.URL.Path)
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
+			fmt.Println("Missing Authorization header")
 			http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
 			return
 		}

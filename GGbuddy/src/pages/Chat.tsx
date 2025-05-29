@@ -167,13 +167,13 @@ const Chat = () => {
   const selectedTeamData = teams.find(team => team.id === selectedTeam);
 
   return (
-    <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-900 via-red-900 to-orange-800">
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-700 via-gray-700 to-gray-700">
       <Sidebar />
       
       <main className="flex-1 overflow-hidden flex">
         {/* Teams List */}
-        <div className="w-80 bg-orange-950/80 backdrop-blur-lg border-r border-orange-800/50 flex flex-col">
-          <div className="p-4 border-b border-orange-800/50">
+        <div className="w-80 bg-gray-900/80 backdrop-blur-lg border-r border-gray-700/50 flex flex-col">
+          <div className="p-4 border-b border-gray-800/50">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <MessageSquare />
               ทีมของฉัน
@@ -187,8 +187,8 @@ const Chat = () => {
                   key={team.id}
                   className={`cursor-pointer transition-all duration-200 ${
                     selectedTeam === team.id
-                      ? 'bg-gradient-to-r from-orange-600/30 to-orange-800/30 border-orange-500/50'
-                      : 'bg-orange-950/50 hover:bg-orange-900/60 border-orange-800/30'
+                      ? 'bg-gradient-to-r from-gray-600/30 to-gray-800/30 border-gray-500/50'
+                      : 'bg-gray-950/50 hover:bg-gray-900/60 border-gray-800/30'
                   }`}
                   onClick={() => setSelectedTeam(team.id)}
                 >

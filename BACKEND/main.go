@@ -44,6 +44,7 @@ func main() {
 	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")
 	r.HandleFunc("/profile", handlers.GetProfileHandler).Methods("GET")
 	r.HandleFunc("/profile", handlers.UpdateProfileHandler).Methods("PUT")
+	r.HandleFunc("/upload-s3", handlers.UploadFileHandler).Methods("POST")
 
 	authMiddleware := middleware.AuthMiddleware
 

@@ -10,7 +10,7 @@ const Index = () => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-900 via-red-900 to-orange-800">
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900">
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
@@ -28,7 +28,7 @@ const Index = () => {
               />
               <h1 className="text-6xl font-bold text-white mb-6 leading-tight">
                 เล่นเกมเหงาๆ<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-400">
                   ชวนใครดี?
                 </span>
               </h1>

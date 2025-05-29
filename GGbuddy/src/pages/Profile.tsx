@@ -41,12 +41,16 @@ const Profile = () => {
   ];
 
   const interestsList = [
-    { id: 'co-op', name: 'Co-op' },
-    { id: 'competitive', name: 'Competitive' },
-    { id: 'strategy', name: 'Strategy' },
-    { id: 'casual', name: 'Casual' },
-    { id: 'rpg', name: 'RPG' },
-    { id: 'fps', name: 'FPS' }
+    { id: 'relax', name: 'เล่นผ่อนคลาย' },
+    { id: 'make-friends', name: 'หาเพื่อนเล่น' },
+    { id: 'casual-fun', name: 'เล่นเพลินๆ' },
+    { id: 'teamwork', name: 'เน้นเล่นเป็นทีม' },
+    { id: 'hangout', name: 'แฮงก์เอาต์ในเกม' },
+    { id: 'exploration', name: 'ชอบผจญภัย' },
+    { id: 'creative', name: 'ชอบสร้างสรรค์' },
+    { id: 'story-driven', name: 'อินกับเนื้อเรื่อง' },
+    { id: 'competition', name: 'ท้าทายตัวเอง' },
+    { id: 'events', name: 'ช่วยกันทำภารกิจ' }
   ];
 
   const handleGameToggle = (gameId: string) => {
@@ -75,12 +79,12 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-900 via-red-900 to-orange-800">
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
       <Sidebar />
       
       <main className="flex-1 overflow-auto p-6">
-        <div className="max-w-2xl mx-auto">
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-6">
+          <Card className="w-full max-w-full sm:max-w-2xl md:max-w-4xl bg-white/10 backdrop-blur-lg border-white/20">
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
                 <User />
@@ -289,7 +293,7 @@ const Profile = () => {
                     <Button
                       variant="outline"
                       onClick={() => setIsEditing(false)}
-                      className="flex-1 border-gray-400 text-white hover:bg-gray-700"
+                      className="flex-1 bg-red-600 border border-red-800 text-white hover:bg-red-700 transition-colors duration-200 rounded-md"
                     >
                       ยกเลิก
                     </Button>
