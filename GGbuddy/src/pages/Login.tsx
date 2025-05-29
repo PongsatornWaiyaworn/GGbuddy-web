@@ -38,6 +38,7 @@ const Login = () => {
       const data = await response.json();
       if (data.token) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('identifier', formData.identifier);
         login();      
         navigate('/'); 
       } else {

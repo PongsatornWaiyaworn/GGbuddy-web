@@ -2,9 +2,7 @@ package utils
 
 import (
 	"errors"
-	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -31,29 +29,4 @@ func GenerateJWT(userID string) (string, error) {
 	}
 
 	return tokenString, nil
-}
-
-var jwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
-
-func ValidateToken(r *http.Request) (string, error) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		return "", errors.New("Authorization header is missing")
-	}
-	tokenString := strings.Split(authHeader, " ")[1]
-
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-
-	if err != nil || !token.Valid {
-		return "", errors.New("Invalid token")
-	}
-
-	userID, ok := claims["sub"].(string)
-	if !ok {
-		return "", errors.New("Invalid token structure")
-	}
-	return userID, nil
 }

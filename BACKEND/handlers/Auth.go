@@ -29,12 +29,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	user := payload.User
 	profile := payload.Profile
 
+	// ตรวจสอบฟิลด์ required ของ user
 	if user.Username == "" || user.Email == "" || user.Password == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
 	}
 
-	// Hash password
+	// hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
@@ -45,35 +46,68 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	usersCol := database.GetCollection("ggbuddy", "users")
 	profileCol := database.GetCollection("ggbuddy", "profiles")
 
+	// เช็คซ้ำ username
 	var existing models.User
 	if err := usersCol.FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&existing); err == nil {
 		http.Error(w, "Username already taken", http.StatusConflict)
 		return
 	}
+	// เช็คซ้ำ email
 	if err := usersCol.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existing); err == nil {
 		http.Error(w, "Email already registered", http.StatusConflict)
 		return
 	}
 
+	// สร้าง ID ใหม่ให้ user
 	user.ID = primitive.NewObjectID()
 
+	// กำหนดค่าใน profile ให้ครบ
 	profile.ID = primitive.NewObjectID()
 	profile.UserID = user.ID
 	profile.Username = user.Username
 	profile.Timestamp = time.Now()
 
+	// ถ้าฟิลด์ nullable อาจเป็น nil หรือ empty ให้กำหนดค่า default ให้เป็น empty string หรือ empty slice
+	if profile.Bio == "" {
+		profile.Bio = ""
+	}
+	if profile.Games == nil {
+		profile.Games = []string{}
+	}
+	if profile.Interests == nil {
+		profile.Interests = []string{}
+	}
+	if profile.DiscordURL == "" {
+		profile.DiscordURL = ""
+	}
+	if profile.FacebookURL == "" {
+		profile.FacebookURL = ""
+	}
+	if profile.LineURL == "" {
+		profile.LineURL = ""
+	}
+	if profile.OtherURL == "" {
+		profile.OtherURL = ""
+	}
+	if profile.Gender == "" {
+		profile.Gender = "Not specified" // หรือกำหนดค่า default ตามต้องการ
+	}
 	if profile.Img == "" {
 		http.Error(w, "Missing profile image URL", http.StatusBadRequest)
 		return
 	}
 
+	// บันทึก profile ลง DB
 	_, err = profileCol.InsertOne(context.TODO(), profile)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
 		return
 	}
 
+	// อัพเดต ProfileID ของ user เพื่อเก็บ reference ไปยัง profile
 	user.ProfileID = &profile.ID
+
+	// บันทึก user ลง DB
 	_, err = usersCol.InsertOne(context.TODO(), user)
 	if err != nil {
 		http.Error(w, "Error saving user", http.StatusInternalServerError)
