@@ -41,6 +41,7 @@ func main() {
 	r.HandleFunc("/block", handlers.BlockUserHandler).Methods("POST")
 	r.HandleFunc("/blocked-list/{blocker_id}", handlers.GetBlockedUsersHandler).Methods("GET")
 	r.HandleFunc("/change-password", handlers.ChangePasswordHandler).Methods("POST")
+	r.HandleFunc("/check-password", handlers.CheckPasswordHandler).Methods("POST")
 	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")
 	r.HandleFunc("/profile", handlers.GetProfileHandler).Methods("GET")
 	r.HandleFunc("/profile", handlers.UpdateProfileHandler).Methods("PUT")

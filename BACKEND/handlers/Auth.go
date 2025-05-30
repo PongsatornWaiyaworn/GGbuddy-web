@@ -7,6 +7,7 @@ import (
 	"ggbuddy/models"
 	"ggbuddy/utils"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,7 +30,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	user := payload.User
 	profile := payload.Profile
 
-	// ตรวจสอบฟิลด์ required ของ user
 	if user.Username == "" || user.Email == "" || user.Password == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
@@ -46,28 +46,24 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	usersCol := database.GetCollection("ggbuddy", "users")
 	profileCol := database.GetCollection("ggbuddy", "profiles")
 
-	// เช็คซ้ำ username
 	var existing models.User
 	if err := usersCol.FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&existing); err == nil {
 		http.Error(w, "Username already taken", http.StatusConflict)
 		return
 	}
-	// เช็คซ้ำ email
+
 	if err := usersCol.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existing); err == nil {
 		http.Error(w, "Email already registered", http.StatusConflict)
 		return
 	}
 
-	// สร้าง ID ใหม่ให้ user
 	user.ID = primitive.NewObjectID()
 
-	// กำหนดค่าใน profile ให้ครบ
 	profile.ID = primitive.NewObjectID()
 	profile.UserID = user.ID
 	profile.Username = user.Username
 	profile.Timestamp = time.Now()
 
-	// ถ้าฟิลด์ nullable อาจเป็น nil หรือ empty ให้กำหนดค่า default ให้เป็น empty string หรือ empty slice
 	if profile.Bio == "" {
 		profile.Bio = ""
 	}
@@ -90,24 +86,21 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		profile.OtherURL = ""
 	}
 	if profile.Gender == "" {
-		profile.Gender = "Not specified" // หรือกำหนดค่า default ตามต้องการ
+		profile.Gender = "Not specified"
 	}
 	if profile.Img == "" {
 		http.Error(w, "Missing profile image URL", http.StatusBadRequest)
 		return
 	}
 
-	// บันทึก profile ลง DB
 	_, err = profileCol.InsertOne(context.TODO(), profile)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
 		return
 	}
 
-	// อัพเดต ProfileID ของ user เพื่อเก็บ reference ไปยัง profile
 	user.ProfileID = &profile.ID
 
-	// บันทึก user ลง DB
 	_, err = usersCol.InsertOne(context.TODO(), user)
 	if err != nil {
 		http.Error(w, "Error saving user", http.StatusInternalServerError)
@@ -169,25 +162,31 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type ChangePasswordRequest struct {
-	Username    string `json:"username"`
+	Identifier  string `json:"identifier"`
 	NewPassword string `json:"new_password"`
 }
 
 func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var req ChangePasswordRequest
 
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if req.Username == "" || req.NewPassword == "" {
-		http.Error(w, "Username and new password are required", http.StatusBadRequest)
+	if req.Identifier == "" || req.NewPassword == "" {
+		http.Error(w, "Identifier and new password are required", http.StatusBadRequest)
 		return
 	}
 
 	collection := database.GetCollection("ggbuddy", "users")
+
+	filter := bson.M{}
+	if strings.Contains(req.Identifier, "@") {
+		filter = bson.M{"email": req.Identifier}
+	} else {
+		filter = bson.M{"username": req.Identifier}
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -195,15 +194,80 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = collection.UpdateOne(
-		context.Background(),
-		bson.M{"username": req.Username},
-		bson.M{"$set": bson.M{"password": string(hashedPassword)}},
-	)
+	update := bson.M{"$set": bson.M{"password": string(hashedPassword)}}
+	result, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		http.Error(w, "Failed to update password", http.StatusInternalServerError)
 		return
 	}
 
+	if result.MatchedCount == 0 {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
 	json.NewEncoder(w).Encode(map[string]string{"message": "Password updated successfully"})
+}
+
+type CheckPasswordRequest struct {
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
+}
+
+func CheckPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var req CheckPasswordRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "Invalid request",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if req.Identifier == "" || req.Password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "Identifier and password are required",
+		})
+		return
+	}
+
+	collection := database.GetCollection("ggbuddy", "users")
+
+	filter := bson.M{}
+	if strings.Contains(req.Identifier, "@") {
+		filter = bson.M{"email": req.Identifier}
+	} else {
+		filter = bson.M{"username": req.Identifier}
+	}
+
+	var user struct {
+		Password string `bson:"password"`
+	}
+
+	err := collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "User not found",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"match":   false,
+			"message": "Password does not match",
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"match":   true,
+		"message": "Password matches",
+	})
 }
