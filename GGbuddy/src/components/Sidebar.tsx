@@ -62,7 +62,8 @@ const Sidebar = () => {
   const handleNavigation = (path: string) => {
     if (!isLoggedIn && path !== "/") return;
     navigate(path);
-  };
+    setIsCollapsed(true);
+  };  
 
   const confirmLogout = () => {
     logout();
@@ -89,6 +90,8 @@ const Sidebar = () => {
 
       <div
         ref={sidebarRef} 
+        onMouseEnter={() => setIsCollapsed(false)}
+        onMouseLeave={() => setIsCollapsed(true)}
         className={cn(
           "fixed top-0 left-0 h-full z-[9999] bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-2xl transition-all duration-300",
           isCollapsed ? "w-16" : "w-64",
@@ -137,7 +140,7 @@ const Sidebar = () => {
                     ? "opacity-50 cursor-not-allowed hover:bg-transparent"
                     : ""
                 )}
-                onClick={() => handleNavigation(item.path)}
+                onClick={() => handleNavigation(item.path) }
                 title={isCollapsed ? item.label : undefined}
                 disabled={disabled}
               >

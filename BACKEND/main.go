@@ -22,7 +22,6 @@ func main() {
 	}
 
 	go handlers.Broadcaster()
-	// go handlers.Broadcaster_match()
 
 	r := mux.NewRouter()
 
@@ -37,8 +36,9 @@ func main() {
 	r.HandleFunc("/matching/delete", handlers.DeleteMatchingCriteriaHandler).Methods("DELETE")
 	r.HandleFunc("/send-otp", handlers.SendOTPHandler).Methods("POST")
 	r.HandleFunc("/verify-otp", handlers.VerifyOTPHandler).Methods("POST")
-	r.HandleFunc("/block", handlers.BlockUserHandler).Methods("POST")
-	r.HandleFunc("/blocked-list/{blocker_id}", handlers.GetBlockedUsersHandler).Methods("GET")
+	r.HandleFunc("/block/{blockedUsername}", handlers.BlockUserHandler).Methods("POST")
+	r.HandleFunc("/blocked-list/{blockerUsername}", handlers.GetBlockedUsersHandler).Methods("GET")
+	r.HandleFunc("/unblock/{blockedUsername}", handlers.UnblockUserHandler).Methods("POST")
 	r.HandleFunc("/change-password", handlers.ChangePasswordHandler).Methods("POST")
 	r.HandleFunc("/check-password", handlers.CheckPasswordHandler).Methods("POST")
 	r.HandleFunc("/profile", handlers.CreateOrUpdateProfileHandler).Methods("POST")

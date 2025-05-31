@@ -13,12 +13,16 @@ import { Settings as SettingsIcon, Shield, UserX, Eye, EyeOff } from "lucide-rea
 const Settings = () => {
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
-  const [blockUsername, setBlockUsername] = useState("");
-  const [blockedUsers, setBlockedUsers] = useState([
-    { id: 1, username: "Teehid", blockedDate: "2024-01-15" },
-    { id: 2, username: "Tidhin", blockedDate: "2024-01-10" },
-    { id: 3, username: "Tee", blockedDate: "2024-01-05" },
-  ]);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const username = localStorage.getItem('username');
+
+  useEffect(() => {
+    fetch(`http://localhost:3000/blocked-list/${username}`)
+      .then(res => res.json())
+      .then(data => setBlockedUsers(data))
+      .catch(err => console.error("โหลดข้อมูลผู้ใช้ที่ถูกบล็อกล้มเหลว", err));
+      console.log(blockedUsers)
+  }, []);  
 
   const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -203,9 +207,32 @@ const Settings = () => {
     setShowDialog_password(true)
   };
 
-  function handleUnblockUser(id: number): void {
-    throw new Error("Function not implemented.");
+  async function handleUnblockUser(blockedUsername: string): Promise<void> {
+    try {
+      const response = await fetch(`http://localhost:3000/unblock/${blockedUsername}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          blocker_username: username, 
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Unblock failed");
+      }
+      
+      const data = await response.json();
+      alert(data.message); 
+      window.location.reload();
+    } catch (error) {
+      console.error("Unblock error:", error);
+      alert("เกิดข้อผิดพลาดในการยกเลิกบล็อกผู้ใช้");
+    }
   }
+  
 
   function handleDeleteAccount(): void {
     throw new Error("Function not implemented.");
@@ -333,19 +360,29 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {blockedUsers.length > 0 ? (
-                blockedUsers.map((user) => (
-                  <div key={user.id} className="flex justify-between items-center p-3 bg-gray-800 rounded-lg mb-2">
+              {Array.isArray(blockedUsers) && blockedUsers.length > 0 ? (
+                blockedUsers.map((user, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-3 bg-gray-800 rounded-lg mb-2"
+                  >
                     <div>
-                      <h4 className="text-white font-medium">{user.username}</h4>
-                      <p className="text-gray-400 text-sm">บล็อกเมื่อ: {new Date(user.blockedDate).toLocaleDateString('th-TH')}</p>
+                      <h4 className="text-white font-medium">{user.BlockedDisplayName}</h4>
+                      <p className="text-gray-400 text-sm">@{user.BlockedUsername}</p>
+                      <p className="text-gray-500 text-xs mt-1">
+                        บล็อกเมื่อ: {new Date(user.Timestamp).toLocaleDateString("th-TH", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric"
+                        })}
+                      </p>
                     </div>
                     <div className="flex gap-2 items-center">
                       <Badge variant="destructive">บล็อกแล้ว</Badge>
                       <Button
                         variant="outline"
                         className="text-black border-gray-400 hover:bg-gray-700"
-                        onClick={() => confirm(() => handleUnblockUser(user.id))}
+                        onClick={() => confirm(() => handleUnblockUser(user.BlockedUsername))}
                       >
                         ยกเลิกบล็อก
                       </Button>
@@ -357,6 +394,7 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+
 
           <Card className="bg-white/10 backdrop-blur-lg border-white/20">
             <CardHeader>

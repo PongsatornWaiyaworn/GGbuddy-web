@@ -192,10 +192,10 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 		members = append(members, criteria.Username)
 
 		now := time.Now()
-		groupName := fmt.Sprintf("%s-%s-%04d%02d%02d-%02d%02d%02d",
-			criteria.PreferredGame, criteria.Mode,
-			now.Year(), now.Month(), now.Day(),
-			now.Hour(), now.Minute(), now.Second())
+		groupName := fmt.Sprintf("%s-%s (%s)",
+			criteria.PreferredGame,
+			criteria.Mode,
+			now.Format("02 January 2006, 15:04:05"))
 
 		group := bson.M{
 			"_id":        primitive.NewObjectID(),

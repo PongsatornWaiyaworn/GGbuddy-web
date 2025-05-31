@@ -102,7 +102,7 @@ const Profile = () => {
   function generateUniqueFilename(originalName: string): string {
     const timestamp = Date.now();
     const extension = originalName.substring(originalName.lastIndexOf('.') + 1);
-    return `user123_${timestamp}.${extension}`;
+    return `user_${timestamp}.${extension}`;
   }
   
   async function uploadProfileImage(base64Image: string, filename: string = "profile.jpg") {
@@ -295,9 +295,10 @@ const Profile = () => {
                       <SelectValue placeholder="เลือกเพศ" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-800 border-gray-600">
-                      <SelectItem value="all" className="text-white">ทุกเพศ</SelectItem>
+                      <SelectItem value="None" className="text-white">ไม่ระบุ</SelectItem>
                       <SelectItem value="male" className="text-white">ชาย</SelectItem>
                       <SelectItem value="female" className="text-white">หญิง</SelectItem>
+                      <SelectItem value="LGBTQ+" className="text-white">LGBTQ+</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

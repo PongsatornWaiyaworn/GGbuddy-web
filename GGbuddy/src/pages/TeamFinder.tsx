@@ -28,12 +28,12 @@ const TeamFinder = () => {
   const navigate = useNavigate();
 
   const games = [
-    { id: '1', name: 'Valorant', icon: '🔫'},
-    { id: '2', name: 'League of Legends', icon: '⚔️'},
-    { id: '3', name: 'Dota 2', icon: '🛡️'},
-    { id: '4', name: 'PUBG', icon: '🪂'},
-    { id: '5', name: 'Apex Legends', icon: '🎯'},
-    { id: '6', name: 'Counter-Strike 2', icon: '💣'}
+    { id: '1', name: 'Valorant', icon: 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Valorant_logo_-_pink_color_version.svg'},
+    { id: '2', name: 'League of Legends', icon: 'https://static.tildacdn.com/tild6363-3366-4131-b062-323333633239/600px-League_of_Lege.png'},
+    { id: '3', name: 'Dota 2', icon: 'https://www.waca.or.jp/en/wp-content/uploads/2021/02/dota-2-2.png'},
+    { id: '4', name: 'PUBG', icon: 'https://cdn2.steamgriddb.com/icon/64c2d22899f32ccd5b3d9fca3ff04c9c/32/256x256.png'},
+    { id: '5', name: 'Apex Legends', icon: 'https://purepng.com/public/uploads/large/apex-legends-icon-xhl.png'},
+    { id: '6', name: 'Counter Strike 2', icon: 'https://img.icons8.com/?size=512&id=x2J66ADPo3VZ&format=png'}
   ];
 
   const interestOptions = [
@@ -115,12 +115,14 @@ const TeamFinder = () => {
 
     ws.current.onopen = () => {
       console.log("WebSocket connected");
+      const game = games.find(g => g.id === selectedGame);
+      console.log(game)
     
       const payload = {
         username: username,
         interests: filters.interests,
         preferred_gender: filters.preferred_gender,
-        preferred_game: selectedGame,
+        preferred_game: game.name,
         group_size: parseInt(filters.group_size),
         mode: filters.mode
       };
@@ -221,17 +223,23 @@ const TeamFinder = () => {
                   onClick={() => setSelectedGame(game.id)}
                 >
                   <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-4">{game.icon}</div>
+                    <div className="flex justify-center items-center mb-4 h-20">
+                      <img
+                        src={game.icon}
+                        alt={game.name}
+                        className="w-24 h-24 object-contain"
+                      />
+                    </div>
                     <h3 className="text-xl font-semibold text-white mb-2">{game.name}</h3>
                     <Button className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">
                       เลือกเกมนี้
                     </Button>
                   </CardContent>
+
                 </Card>
               ))}
             </div>
           ) : isMatching ? (
-            /* หน้าจอรอจับคู่ */
             <div className="flex flex-col items-center justify-center h-120 text-white space-y-6">
               <div className="relative flex items-center justify-center">
                 <div className="loader ease-linear rounded-full border-12 border-t-12 border-gray-200 h-40 w-40 absolute animate-spin"></div>

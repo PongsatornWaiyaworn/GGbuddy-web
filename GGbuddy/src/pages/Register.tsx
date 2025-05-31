@@ -457,9 +457,10 @@ const Register = () => {
                               <SelectValue placeholder="เลือกเพศ" />
                             </SelectTrigger>
                             <SelectContent className="bg-gray-800 border-gray-600">
-                              <SelectItem value="all" className="text-white">ไม่ระบุ</SelectItem>
-                              <SelectItem value="male" className="text-white">ชาย</SelectItem>
-                              <SelectItem value="female" className="text-white">หญิง</SelectItem>
+                            <SelectItem value="None" className="text-white">ไม่ระบุ</SelectItem>
+                            <SelectItem value="male" className="text-white">ชาย</SelectItem>
+                            <SelectItem value="female" className="text-white">หญิง</SelectItem>
+                            <SelectItem value="LGBTQ+" className="text-white">LGBTQ+</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
