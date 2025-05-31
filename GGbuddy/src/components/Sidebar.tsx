@@ -23,21 +23,17 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
 
-  // เพิ่ม ref เก็บ Sidebar element (ทั้ง desktop และ mobile)
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // ฟังก์ชันตรวจจับคลิกนอก sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         sidebarRef.current &&
         !sidebarRef.current.contains(event.target as Node)
       ) {
-        // ถ้า sidebar desktop เปิดอยู่ ให้พับ
         if (!isCollapsed) {
           setIsCollapsed(true);
         }
-        // ถ้า mobile menu เปิดอยู่ ให้ปิด
         if (isMobileMenuOpen) {
           setIsMobileMenuOpen(false);
         }
