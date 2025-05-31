@@ -22,7 +22,7 @@ func main() {
 	}
 
 	go handlers.Broadcaster()
-	go handlers.Broadcaster_match()
+	// go handlers.Broadcaster_match()
 
 	r := mux.NewRouter()
 
@@ -34,7 +34,6 @@ func main() {
 	r.HandleFunc("/api/chats", handlers.GetUserChatsHandler).Methods("GET")
 	r.HandleFunc("/messages/send", handlers.SendMessageHandler).Methods("POST")
 	r.HandleFunc("/messages", handlers.GetMessagesHandler).Methods("GET")
-	r.HandleFunc("/match", handlers.CreateMatchingCriteriaHandler).Methods("POST")
 	r.HandleFunc("/matching/delete", handlers.DeleteMatchingCriteriaHandler).Methods("DELETE")
 	r.HandleFunc("/send-otp", handlers.SendOTPHandler).Methods("POST")
 	r.HandleFunc("/verify-otp", handlers.VerifyOTPHandler).Methods("POST")

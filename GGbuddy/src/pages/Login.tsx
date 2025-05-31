@@ -39,6 +39,8 @@ const Login = () => {
       if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('identifier', formData.identifier);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('email', data.email);
         login();      
         navigate('/'); 
       } else {
