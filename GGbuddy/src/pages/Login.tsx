@@ -98,6 +98,9 @@ const Login = () => {
                 className="bg-gray-800 border-gray-600 text-white"
                 required
               />
+              <Link to="/forgot-password" className="text-orange-400 hover:text-orange-300 underline mt-2 inline-block">
+                ลืมรหัสผ่าน
+              </Link>
             </div>
 
             {errorMessage && (
@@ -119,7 +122,7 @@ const Login = () => {
                 สมัครสมาชิก
               </Link>
             </p>
-            <Link to="/" className="text-gray-400 hover:text-gray-300 text-sm mt-2 inline-block">
+            <Link to="/" className="text-orange-400 hover:text-orange-300 underline mt-2 block">
               กลับหน้าแรก
             </Link>
           </div>

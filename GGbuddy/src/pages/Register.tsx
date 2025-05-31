@@ -320,6 +320,14 @@ const Register = () => {
               </div>
 
               <Button type="submit" className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">สมัครสมาชิก</Button>
+              <div className="mt-6 text-center">
+                          <Link 
+                            to="/login" 
+                            className="text-orange-400 hover:text-orange-300 underline text-sm"
+                          >
+                            กลับไปหน้าเข้าสู่ระบบ
+                          </Link>
+                        </div>
             </form>
           )}
 

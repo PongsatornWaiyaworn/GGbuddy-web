@@ -11,6 +11,7 @@ import TeamFinder from "./pages/TeamFinder";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import { AuthProvider } from "./AuthContext";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/team-finder" element={<TeamFinder />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
