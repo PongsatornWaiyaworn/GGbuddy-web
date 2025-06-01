@@ -125,6 +125,7 @@ func UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
 			"age":          profile.Age,
 			"interests":    profile.Interests,
 			"games":        profile.Games,
+			"gender":       profile.Gender,
 			"discord_url":  profile.DiscordURL,
 			"facebook_url": profile.FacebookURL,
 			"line_url":     profile.LineURL,

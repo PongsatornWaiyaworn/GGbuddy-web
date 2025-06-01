@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
-import { MessageSquare, Send, Users } from "lucide-react";
+import { Menu, MessageSquare, Send, Users } from "lucide-react";
 
 interface Message {
   id?: number;
@@ -61,6 +61,8 @@ const Chat = () => {
   const [popupProfile, setPopupProfile] = useState(null);
   const closePopup = () => setPopupProfile(null);
   const [showConfirmBlock, setShowConfirmBlock] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const selectedTeamData = teams.find((team) => team.id === selectedTeam);
 
   const handleViewProfile = async (username: string) => {
     if (!memberProfiles[username]) {
@@ -78,12 +80,17 @@ const Chat = () => {
     }
   };
   
-
+  useEffect(() => {
+    scrollToBottom();
+  }, [selectedTeamData?.messages?.length]);
+  
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-      setTimeout(() => {
-        scrollAreaRef.current!.scrollTop = scrollAreaRef.current!.scrollHeight;
-      }, 100);
+      // scroll ลงล่างสุดแบบ smooth
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -145,11 +152,11 @@ const Chat = () => {
     socket.onmessage = async (event) => {
       const receivedMessage = JSON.parse(event.data);
     
-      if (!memberProfiles[receivedMessage.username]) {
+      if (!memberProfiles[receivedMessage.sender_id]) {
         try {
-          const res = await fetch(`http://localhost:3000/profile?identifier=${receivedMessage.username}`);
+          const res = await fetch(`http://localhost:3000/profile?identifier=${receivedMessage.sender_id}`);
           const data = await res.json();
-          setMemberProfiles(prev => ({ ...prev, [receivedMessage.username]: data }));
+          setMemberProfiles(prev => ({ ...prev, [receivedMessage.sender_id]: data }));
         } catch (err) {
           console.error("Error fetching new profile:", err);
         }
@@ -163,9 +170,9 @@ const Chat = () => {
                 messages: [
                   ...(team.messages || []),
                   {
-                    sender_id: receivedMessage.username,
+                    sender_id: receivedMessage.sender_id,
                     content: receivedMessage.content,
-                    isUserMessage: receivedMessage.username === username,
+                    isUserMessage: receivedMessage.sender_id === username,
                     timestamp: new Date().toISOString(),
                   },
                 ],
@@ -174,7 +181,6 @@ const Chat = () => {
             : team
         )
       );
-      scrollToBottom();
     };
     socket.onclose = () => console.log("Disconnected from WebSocket");
     socket.onerror = (error) => console.error("WebSocket error:", error);
@@ -279,77 +285,136 @@ const Chat = () => {
       .replace(" ", "");
   };
 
-  const selectedTeamData = teams.find((team) => team.id === selectedTeam);
-
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-950">
       <Sidebar />
 
       <main className="flex-1 flex overflow-hidden ml-0 lg:ml-16 z-20">
-        {/* Sidebar: Teams */}
-        <div className="w-80 bg-gray-800/90 backdrop-blur-lg border-r border-gray-700 flex flex-col">
-          <div className="p-5 border-b border-gray-700">
-            <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-              <MessageSquare size={24} />
-              ทีมของฉัน
-            </h2>
+        {/* ปุ่มเปิด/ปิด Sidebar สำหรับมือถือ */}
+        {isSidebarOpen ? (
+          <div
+            className="fixed top-1/2 left-80 transform -translate-y-1/2 lg:hidden z-50"
+            style={{ transition: 'left 0.3s ease' }}
+          >
+            <button
+              className="
+                bg-gray-800 text-white border border-gray-600
+                rounded-r-full rounded-l-none
+                h-12
+                px-3
+                shadow-md
+                hover:bg-gray-700 hover:shadow-lg
+                focus:outline-none
+                transition duration-300 ease-in-out
+                select-none
+                flex items-center justify-center
+              "
+              style={{
+                width: '36px',
+                boxShadow: '2px 0 8px rgba(0,0,0,0.7)',
+              }}
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close sidebar"
+              type="button"
+            >
+              &lt;
+            </button>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-3">
-            {teams.map((team) => {
-              const gameNameFromTeam = team.name.split("-")[0]?.trim();
-              const matchedGame = games.find(g => g.name === gameNameFromTeam);
+        ) : (
+          <div
+            className="fixed top-1/2 left-0 transform -translate-y-1/2 lg:hidden z-50"
+            style={{ transition: 'left 0.3s ease' }}
+          >
+            <button
+              className="
+                bg-gray-800 text-white border border-gray-600
+                rounded-r-full rounded-l-none
+                h-12
+                px-3
+                shadow-md
+                hover:bg-gray-700 hover:shadow-lg
+                focus:outline-none
+                transition duration-300 ease-in-out
+                select-none
+                flex items-center justify-center
+              "
+              style={{
+                width: '36px',
+                boxShadow: '-2px 0 8px rgba(0,0,0,0.7)',
+              }}
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open sidebar"
+              type="button"
+            >
+              &gt;
+            </button>
+          </div>
+        )}
 
-              return (
-                <Card
-                key={team.id}
-                className={`w-full cursor-pointer transition-colors duration-200 border ${
-                  selectedTeam === team.id
-                    ? "bg-gray-700 border-gray-400"
-                    : "bg-gray-900/70 hover:bg-gray-800/90 border-gray-700"
-                }`}
-                onClick={() => setSelectedTeam(team.id)}
-              >
-
-                  <CardContent className="p-4">
-                    <div className="flex gap-4 items-center">
-
-                      <img
-                        src={matchedGame?.icon || "/default-icon.png"}
-                        alt="Game Icon"
-                        className="w-12 h-12 rounded-md object-cover"
-                      />
-
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-gray-100 text-sm truncate max-w-[70%]">
-                            {team.name}
-                          </h3>
-                          {team.unread && team.unread > 0 && (
-                            <Badge className="bg-gray-400 text-gray-900 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
-                              {team.unread}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-gray-400 text-xs mb-1 truncate">{team.game}</p>
-                        {/* <p
-                          className="text-gray-300 text-xs truncate"
-                          title={team.lastMessage || ""}
-                        >
-                          {team.lastMessage || "ยังไม่มีข้อความ"}
-                        </p> */}
-                        <div className="flex items-center gap-1 mt-2 text-gray-400 text-xs">
-                          <Users size={14} />
-                          <span>{team.members.length} คน</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div
+            className={`
+              h-screen w-80
+              bg-gray-800/90 backdrop-blur-lg border-r border-gray-700
+              flex flex-col transition-transform duration-300
+              fixed z-40 top-0 left-0
+              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+              lg:static lg:translate-x-0 lg:z-auto
+            `}
+          >
+            <div className="p-5 border-b border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
+                <MessageSquare size={24} />
+                ทีมของฉัน
+              </h2>
             </div>
-          </ScrollArea>
+
+            <ScrollArea className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-3">
+                {teams.map((team) => {
+                  const gameNameFromTeam = team.name.split("-")[0]?.trim();
+                  const matchedGame = games.find((g) => g.name === gameNameFromTeam);
+
+                  return (
+                    <Card
+                      key={team.id}
+                      className={`w-full cursor-pointer transition-colors duration-200 border ${
+                        selectedTeam === team.id
+                          ? "bg-gray-700 border-gray-400"
+                          : "bg-gray-900/70 hover:bg-gray-800/90 border-gray-700"
+                      }`}
+                      onClick={() => setSelectedTeam(team.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex gap-4 items-center">
+                          <img
+                            src={matchedGame?.icon || "/default-icon.png"}
+                            alt="Game Icon"
+                            className="w-12 h-12 rounded-md object-cover"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-semibold text-gray-100 text-sm truncate max-w-[70%]">
+                                {team.name}
+                              </h3>
+                              {team.unread && team.unread > 0 && (
+                                <Badge className="bg-gray-400 text-gray-900 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
+                                  {team.unread}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-gray-400 text-xs mb-1 truncate">{team.game}</p>
+                            <div className="flex items-center gap-1 mt-2 text-gray-400 text-xs">
+                              <Users size={14} />
+                              <span>{team.members.length} คน</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </ScrollArea>
         </div>
 
         {/* Chat Content */}
@@ -381,12 +446,12 @@ const Chat = () => {
               </div>
               </header>
 
-              <ScrollArea
+              <div
                 ref={scrollAreaRef}
-                className="flex-1 p-6 space-y-4 overflow-y-auto pb-0 max-h-[80vh]" 
+                className="flex-1 p-6 space-y-4 overflow-y-auto pb-0 max-h-[80vh]"
                 style={{
-                  scrollbarWidth: 'none',       
-                  msOverflowStyle: 'none'       
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
                 }}
               >
                 {selectedTeamData.messages && selectedTeamData.messages.length > 0 ? (
@@ -439,16 +504,13 @@ const Chat = () => {
                           )}
                         </div>
                       </div>
-
                     );
                   })
                 ) : (
                   <p className="text-center text-gray-500 mt-4">ยังไม่มีข้อความ</p>
                 )}
+              </div>
 
-              </ScrollArea>
-
-            {/* ช่องส่งข้อความ fixed bottom */}
             <form
               onSubmit={handleSendMessage}
               className="fixed bottom-0 left-0 right-0 p-4 border-t border-gray-700 flex items-center gap-2 bg-gray-900/90 z-50"
@@ -480,15 +542,12 @@ const Chat = () => {
 
       {popupProfile && (
           <>
-            {/* Background overlay */}
             <div
               className="fixed inset-0 bg-black bg-opacity-60 z-40"
               onClick={closePopup}
             ></div>
 
-            {/* Popup container */}
             <div className="fixed z-50 top-1/2 left-1/2 w-96 max-w-full bg-gray-900 rounded-xl shadow-2xl transform -translate-x-1/2 -translate-y-1/2 p-6 text-white font-sans">
-              {/* Close button */}
               <button
                 onClick={closePopup}
                 className="absolute top-4 right-4 text-gray-400 hover:text-white transition text-2xl font-bold"
@@ -497,7 +556,6 @@ const Chat = () => {
                 &times;
               </button>
 
-              {/* Profile header */}
               <div className="flex items-center space-x-6 mb-5">
                 <img
                   src={popupProfile.img}
@@ -512,7 +570,6 @@ const Chat = () => {
                 </div>
               </div>
 
-              {/* Info grid */}
               <div className="grid grid-cols-2 gap-y-3 gap-x-6 mb-5 text-gray-300">
                 <div>
                   <h3 className="font-semibold text-gray-400 text-sm uppercase mb-1">อายุ</h3>
@@ -528,7 +585,6 @@ const Chat = () => {
                 </div>
               </div>
 
-              {/* Games */}
               {popupProfile.games && popupProfile.games.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-400 text-sm uppercase mb-2">เกมที่เล่น</h3>
@@ -540,7 +596,6 @@ const Chat = () => {
                 </div>
               )}
 
-              {/* Social links */}
               <div className="flex flex-wrap gap-3 justify-center mb-6">
                 {popupProfile.discord_url && (
                   <a
@@ -549,15 +604,12 @@ const Chat = () => {
                     rel="noreferrer"
                     className="flex items-center gap-2 px-4 py-2 bg-indigo-600 rounded-full text-white text-sm font-medium hover:bg-indigo-700 transition"
                   >
-                    {/* Discord icon SVG */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M20 0H4C1.8 0 0 1.8 0 4v16c0 2.2 1.8 4 4 4h12l-1.1-3.4 2.7 2.7 3.4-3.4-2.7-2.7L24 20V4c0-2.2-1.8-4-4-4z" />
-                    </svg>
+                    <img
+                    src="https://static-00.iconduck.com/assets.00/discord-icon-1024x724-lsqch8rr.png"
+                    alt="Discord Logo"
+                    className="h-5 w-5"
+                    style={{ objectFit: "contain" }}
+                    />
                     Discord
                   </a>
                 )}
@@ -568,7 +620,6 @@ const Chat = () => {
                     rel="noreferrer"
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-full text-white text-sm font-medium hover:bg-blue-700 transition"
                   >
-                    {/* Facebook icon SVG */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -587,15 +638,12 @@ const Chat = () => {
                     rel="noreferrer"
                     className="flex items-center gap-2 px-4 py-2 bg-green-600 rounded-full text-white text-sm font-medium hover:bg-green-700 transition"
                   >
-                    {/* Line icon SVG (simple chat bubble) */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                    <img
+                      src="https://www.svgrepo.com/show/81685/line-logo.svg"
+                      alt="Line Logo"
                       className="h-5 w-5"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M4 2a2 2 0 0 0-2 2v16l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4z" />
-                    </svg>
+                      style={{ objectFit: "contain" }}
+                    />
                     LINE
                   </a>
                 )}
@@ -606,7 +654,6 @@ const Chat = () => {
                     rel="noreferrer"
                     className="flex items-center gap-2 px-4 py-2 bg-gray-600 rounded-full text-white text-sm font-medium hover:bg-gray-700 transition"
                   >
-                    {/* Link icon SVG */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -620,7 +667,6 @@ const Chat = () => {
                 )}
               </div>
 
-              {/* Block button */}
               <button
                 onClick={() => setShowConfirmBlock(true)}
                 className="w-full bg-red-600 hover:bg-red-700 transition rounded-lg py-3 font-semibold text-lg shadow-lg"

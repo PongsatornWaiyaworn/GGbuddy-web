@@ -45,11 +45,12 @@ const ForgotPassword = () => {
       const data = await res.json();
 
       if (res.ok) {
+        setEmail(data.email)
         setStep(2);
         setTimeLeft(300); // 5 mins
         toast({
           title: "OTP Sent",
-          description: `เราได้ส่งรหัส OTP ไปยัง ${email}`,
+          description: `เราได้ส่งรหัส OTP ไปยัง ${data.email}`,
         });
       } else {
         setErrorMessage(data.message || "เกิดข้อผิดพลาดในการส่ง OTP");
@@ -175,7 +176,7 @@ const ForgotPassword = () => {
           {/* Step 2 */}
           {step === 2 && (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <p className="text-white">เราได้ส่งรหัส OTP ไปยังอีเมลของ <span className="text-orange-400">{email}</span></p>
+              <p className="text-white">เราได้ส่งรหัส OTP ไปยังอีเมล <span className="text-orange-400">{email}</span></p>
               <div>
                 <Label htmlFor="otp" className="text-white">รหัส OTP</Label>
                 <Input

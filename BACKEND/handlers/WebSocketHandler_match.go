@@ -82,21 +82,17 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 
 	ctx := context.Background()
 
-	fmt.Println("=== [START] handleMatchingLogic ===")
-	fmt.Printf("Incoming Criteria: %+v\n", criteria)
-
 	count, err := collection.CountDocuments(ctx, bson.M{"username": criteria.Username})
 	if err != nil {
 		fmt.Println("Error counting documents:", err)
 		return nil, err
 	}
-	fmt.Println("Existing waiting count:", count)
-	fmt.Println("\n\n[DEBUG] criteria details: %+v\n\n", criteria)
 
 	if count == 0 {
 		newCriteria := bson.M{
 			"_id":              primitive.NewObjectID(),
 			"username":         criteria.Username,
+			"gender":           criteria.Gender,
 			"interests":        criteria.Interests,
 			"preferred_gender": criteria.PreferredGender,
 			"preferred_game":   criteria.PreferredGame,
@@ -116,25 +112,32 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 	}
 
 	blockedUsersMap := make(map[string]bool)
-	blockFilter := bson.M{"blocker_id": criteria.Username}
+	blockFilter := bson.M{
+		"$or": []bson.M{
+			{"blocker_username": criteria.Username},
+			{"blocked_username": criteria.Username},
+		},
+	}
 	blockCursor, err := blockCollection.Find(ctx, blockFilter)
 	if err != nil {
-		fmt.Println("Error finding blocked users:", err)
 		return nil, err
 	}
 	defer blockCursor.Close(ctx)
 
 	for blockCursor.Next(ctx) {
 		var block struct {
-			BlockedID string `bson:"blocked_id"`
+			Blocker string `bson:"blocker_username"`
+			Blocked string `bson:"blocked_username"`
 		}
 		if err := blockCursor.Decode(&block); err == nil {
-			blockedUsersMap[block.BlockedID] = true
+			if block.Blocker == criteria.Username {
+				blockedUsersMap[block.Blocked] = true // เราบล็อกเขา
+			} else {
+				blockedUsersMap[block.Blocker] = true // เขาบล็อกเรา
+			}
 		}
 	}
-	fmt.Println("Blocked users map:", blockedUsersMap)
 
-	// 3. Find candidates
 	filter := bson.M{
 		"preferred_game": criteria.PreferredGame,
 		"mode":           criteria.Mode,
@@ -143,7 +146,6 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 	}
 	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
-		fmt.Println("Error finding candidates:", err)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
@@ -153,37 +155,31 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 		Score  int
 	}
 	var candidates []playerWithScore
-	var raw bson.M
 
 	for cursor.Next(ctx) {
 		var player models.MatchingCriteria
 		if err := cursor.Decode(&player); err != nil {
-			fmt.Println("Error decoding player:", err)
 			continue
 		}
-		if err := cursor.Decode(&raw); err == nil {
-			fmt.Println(">>> RAW from Mongo:", raw)
-		} else {
-			fmt.Println("RAW Decode error:", err)
-		}
 
-		fmt.Printf("Checking candidate: %+v\n", player)
-
+		// ไม่จับคู่กับคนที่มีการบล็อกระหว่างกัน
 		if blockedUsersMap[player.Username] {
-			fmt.Println("Candidate is blocked:", player.Username)
-			continue
-		}
-		if player.PreferredGender != criteria.PreferredGender {
-			fmt.Printf("Gender not matched: %s vs %s\n", player.PreferredGender, criteria.PreferredGender)
 			continue
 		}
 
+		// ตรวจสอบ Gender
+		if criteria.PreferredGender != "" && criteria.PreferredGender != "all" && player.Gender != criteria.PreferredGender {
+			continue
+		}
+		if player.PreferredGender != "" && player.PreferredGender != "all" && criteria.Gender != player.PreferredGender {
+			continue
+		}
+
+		// นับความสนใจที่ตรงกัน
 		score := countMatchingInterests(criteria.Interests, player.Interests)
-		fmt.Printf("Candidate %s has score: %d\n", player.Username, score)
 		candidates = append(candidates, playerWithScore{Player: player, Score: score})
 	}
 
-	fmt.Printf("Total candidates found: %d\n", len(candidates))
 	if len(candidates)+1 >= criteria.GroupSize {
 		members := make([]string, 0, criteria.GroupSize)
 		for i := 0; i < criteria.GroupSize-1; i++ {
@@ -192,10 +188,7 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 		members = append(members, criteria.Username)
 
 		now := time.Now()
-		groupName := fmt.Sprintf("%s-%s (%s)",
-			criteria.PreferredGame,
-			criteria.Mode,
-			now.Format("02 January 2006, 15:04:05"))
+		groupName := fmt.Sprintf("%s-%s (%s)", criteria.PreferredGame, criteria.Mode, now.Format("02 January 2006, 15:04:05"))
 
 		group := bson.M{
 			"_id":        primitive.NewObjectID(),
@@ -210,22 +203,13 @@ func handleMatchingLogic(criteria models.MatchingCriteria) (*primitive.ObjectID,
 			return nil, err
 		}
 
-		fmt.Println("Created group:", group)
-		fmt.Println("Insert group result:", result.InsertedID)
-
 		_, err = collection.DeleteMany(ctx, bson.M{"username": bson.M{"$in": members}})
 		if err != nil {
-			fmt.Println("Error removing matched users:", err)
 			return nil, err
 		}
 
 		groupID := result.InsertedID.(primitive.ObjectID)
-
-		fmt.Println("Group created with ID:", groupID.Hex())
-		fmt.Println("Group members:", members)
-
 		notifyGroupMembers(members, groupID)
-
 		return &groupID, nil
 	}
 

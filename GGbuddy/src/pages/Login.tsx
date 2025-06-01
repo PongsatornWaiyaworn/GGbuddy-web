@@ -41,6 +41,7 @@ const Login = () => {
         localStorage.setItem('identifier', formData.identifier);
         localStorage.setItem('username', data.username);
         localStorage.setItem('email', data.email);
+        localStorage.setItem('gender', data.gender);
         login();      
         navigate('/'); 
       } else {

@@ -13,6 +13,7 @@ import getCroppedImg from '../lib/cropImage'
 import { Slider } from '@/components/ui/slider' 
 import AWS from "aws-sdk";
 import axios from 'axios';
+import { toast } from "@/components/ui/use-toast";
 
 const games = [
   { id: 'valorant', name: 'Valorant' },
@@ -58,6 +59,7 @@ const Register = () => {
   const [imageSrc, setImageSrc] = useState(null);
   const [isEditing, setIsEditing] = useState(true);
   const [showCropper, setShowCropper] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [profile, setProfile] = useState({
     img: 'https://ggbuddy.s3.ap-southeast-2.amazonaws.com/example.png',
@@ -108,7 +110,7 @@ const Register = () => {
   const handleCreate = async () => {
     try {
       let imgUrl = profile.img;
-
+  
       if (profile.img.startsWith("data:image")) {
         imgUrl = await uploadProfileImage(profile.img);
       }
@@ -133,91 +135,129 @@ const Register = () => {
           img: imgUrl,
         },
       };
-      console.log(payload)
+      console.log(payload);
   
       await axios.post("http://localhost:3000/register", payload);
+      toast({
+        title: "สร้างบัญชีสำเร็จ",
+        description: "คุณสามารถเข้าสู่ระบบได้แล้ว",
+      });
     } catch (error) {
       console.error("Upload/Register Error", error);
-      alert("เกิดข้อผิดพลาด");
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const sendOtpToBackend = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:3000/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      });
+  
+      if (!res.ok) throw new Error("Failed to send OTP");
+  
+      toast({
+        title: "ส่งรหัส OTP สำเร็จ",
+        description: `เราได้ส่งรหัส OTP ไปยังอีเมล ${formData.email}`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: "ส่งรหัส OTP ไม่สำเร็จ",
+        description: "กรุณาลองใหม่อีกครั้งภายหลัง",
+        variant: "destructive",
+      });
+      return false;
     }
   };  
 
-  const sendOtpToBackend = async () => {
-    try {
-      const res = await fetch('http://127.0.0.1:3000/send-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: formData.email })
-      });
-      if (!res.ok) throw new Error('Failed to send OTP');
-      return true;
-    } catch (error) {
-      alert('ส่ง OTP ไม่สำเร็จ ลองใหม่อีกครั้ง');
-      return false;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     if (formData.password !== formData.confirmPassword) {
-      alert('รหัสผ่านไม่ตรงกัน');
+      toast({
+        title: "รหัสผ่านไม่ตรงกัน",
+        description: "กรุณาตรวจสอบให้แน่ใจว่ารหัสผ่านและยืนยันรหัสผ่านตรงกัน",
+        variant: "destructive",
+      });
+      setIsLoading(false);
       return;
     }
     const otpSent = await sendOtpToBackend();
     if (otpSent) {
       setStep(2);
       setTimeLeft(300);
+      setIsLoading(false);
     }
   };
-
+  
   useEffect(() => {
     if (step === 2 && timeLeft > 0) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
     }
-
+  
     if (timeLeft === 0 && timerRef.current) {
       clearInterval(timerRef.current);
-      alert('หมดเวลารหัส OTP กรุณาส่งรหัสใหม่');
+      toast({
+        title: "หมดเวลายืนยัน OTP",
+        description: "กรุณาขอรหัส OTP ใหม่อีกครั้ง",
+        variant: "destructive",
+      });
       setStep(1);
       setOtp('');
     }
-
+  
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
   }, [step, timeLeft]);
-
+  
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const res = await fetch('http://127.0.0.1:3000/verify-otp', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, code: otp })
       });
+  
       if (!res.ok) {
-        alert('รหัส OTP ไม่ถูกต้อง');
+        toast({
+          title: "OTP ไม่ถูกต้อง",
+          description: "กรุณาตรวจสอบรหัส OTP ที่กรอก",
+          variant: "destructive",
+        });
         return;
       }
+  
       setStep(3);
-
       setIsEditing(true);
-
+  
       if (timerRef.current) clearInterval(timerRef.current);
     } catch (error) {
-      alert('เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถยืนยัน OTP ได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
     }
   };
-
+  
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return m + ':' + s;
-  };
+  };  
 
   const handleGameToggle = (id: string) => {
     const gameName = games.find(g => g.id === id)?.name;
@@ -272,16 +312,6 @@ const Register = () => {
         <CardContent>
           {step === 1 && (
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* <div>
-                <Label htmlFor="name" className="text-white">ชื่อ</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-gray-800 border-gray-600 text-white"
-                  required
-                />
-              </div> */}
 
               <div>
                 <Label htmlFor="email" className="text-white">อีเมล</Label>
@@ -319,15 +349,47 @@ const Register = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">สมัครสมาชิก</Button>
+              <Button
+                type="submit"
+                className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 flex items-center justify-center"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      ></path>
+                    </svg>
+                    กำลังส่งOTP...
+                  </div>
+                ) : (
+                  "สมัครสมาชิก"
+                )}
+              </Button>
               <div className="mt-6 text-center">
-                          <Link 
-                            to="/login" 
-                            className="text-orange-400 hover:text-orange-300 underline text-sm"
-                          >
-                            กลับไปหน้าเข้าสู่ระบบ
-                          </Link>
-                        </div>
+                <Link 
+                  to="/login" 
+                  className="text-orange-400 hover:text-orange-300 underline text-sm"
+                >
+                  กลับไปหน้าเข้าสู่ระบบ
+                </Link>
+              </div>
             </form>
           )}
 
@@ -344,15 +406,6 @@ const Register = () => {
               />
               <div className="flex justify-between items-center">
                 <span>เวลาที่เหลือ: {formatTime(timeLeft)}</span>
-                {/* <Button
-                  variant="outline"
-                  onClick={async () => {
-                    const success = await sendOtpToBackend();
-                    if (success) setTimeLeft(300);
-                  }}
-                >
-                  ส่งรหัส OTP ใหม่
-                </Button> */}
                 <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700" type="submit">ยืนยัน OTP</Button>
               </div>
             </form>

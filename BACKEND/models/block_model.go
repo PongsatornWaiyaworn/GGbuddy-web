@@ -33,18 +33,6 @@ func IsBlockedOneway(ctx context.Context, user1 string, user2 string) (bool, err
 	return count > 0, err
 }
 
-func IsBlocked(ctx context.Context, user1 string, user2 string) (bool, error) {
-	collection := database.GetCollection("ggbuddy", "blocked_users")
-	filter := bson.M{
-		"$or": []bson.M{
-			{"blocker_username": user1, "blocked_username": user2},
-			{"blocker_username": user2, "blocked_username": user1},
-		},
-	}
-	count, err := collection.CountDocuments(ctx, filter)
-	return count > 0, err
-}
-
 func GetBlockedUsersByBlocker(ctx context.Context, blockerUsername string) ([]Block, error) {
 	collection := database.GetCollection("ggbuddy", "blocked_users")
 

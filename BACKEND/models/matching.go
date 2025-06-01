@@ -2,6 +2,7 @@ package models
 
 type MatchingCriteria struct {
 	Username        string   `json:"username" bson:"username"`
+	Gender          string   `json:"gender" bson:"gender"`
 	Interests       []string `json:"interests" bson:"interests"`
 	PreferredGender string   `json:"preferred_gender" bson:"preferred_gender"`
 	PreferredGame   string   `json:"preferred_game" bson:"preferred_game"`

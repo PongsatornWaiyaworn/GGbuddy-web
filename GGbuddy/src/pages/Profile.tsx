@@ -11,6 +11,7 @@ import { User, Camera } from "lucide-react";
 import axios from "axios";
 import Cropper from "react-easy-crop";
 import getCroppedImg from '../lib/cropImage' 
+import { toast } from "@/components/ui/use-toast";
 
 interface ProfileData {
   username: string;
@@ -159,7 +160,12 @@ const Profile = () => {
           'Content-Type': 'application/json'
         }
       });
-      console.log('Profile saved:', profile);
+      toast({
+        title: "อัปเดตข้อมูลสำเร็จ",
+        description: "ข้อมูลโปรไฟล์ของคุณได้รับการอัปเดตเรียบร้อยแล้ว",
+
+      });
+      
       setIsEditing(false);
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -294,14 +300,15 @@ const Profile = () => {
                     <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                       <SelectValue placeholder="เลือกเพศ" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-600">
-                      <SelectItem value="None" className="text-white">ไม่ระบุ</SelectItem>
-                      <SelectItem value="male" className="text-white">ชาย</SelectItem>
-                      <SelectItem value="female" className="text-white">หญิง</SelectItem>
-                      <SelectItem value="LGBTQ+" className="text-white">LGBTQ+</SelectItem>
+                    <SelectContent className="bg-gray-800 border-gray-600 text-white">
+                      <SelectItem value="None">ไม่ระบุ</SelectItem>
+                      <SelectItem value="male">ชาย</SelectItem>
+                      <SelectItem value="female">หญิง</SelectItem>
+                      <SelectItem value="LGBTQ+">LGBTQ+</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
               </div>
 
               <div>

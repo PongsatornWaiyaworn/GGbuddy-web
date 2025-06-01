@@ -24,6 +24,7 @@ const TeamFinder = () => {
   const ws = useRef<WebSocket | null>(null);
   const username = localStorage.getItem('username');
   const Inidentifier = localStorage.getItem('identifier');
+  const Gender = localStorage.getItem('gender');
   const [ImageSrc, setImageSrc] = useState();
   const navigate = useNavigate();
 
@@ -116,16 +117,18 @@ const TeamFinder = () => {
     ws.current.onopen = () => {
       console.log("WebSocket connected");
       const game = games.find(g => g.id === selectedGame);
-      console.log(game)
     
       const payload = {
         username: username,
         interests: filters.interests,
+        gender: Gender,
         preferred_gender: filters.preferred_gender,
         preferred_game: game.name,
         group_size: parseInt(filters.group_size),
         mode: filters.mode
       };
+
+      console.log(payload)
     
       ws.current?.send(JSON.stringify(payload));
     };

@@ -76,7 +76,10 @@ func SendOTPHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"message": "OTP sent successfully"})
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "OTP sent successfully",
+		"email":   email,
+	})
 }
 
 func VerifyOTPHandler(w http.ResponseWriter, r *http.Request) {

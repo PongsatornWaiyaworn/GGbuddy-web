@@ -130,7 +130,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.GetCollection("ggbuddy", "users")
+	userCollection := database.GetCollection("ggbuddy", "users")
+	profileCollection := database.GetCollection("ggbuddy", "profiles")
+
 	var dbUser models.User
 
 	filter := bson.M{
@@ -140,7 +142,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = collection.FindOne(nil, filter).Decode(&dbUser)
+	err = userCollection.FindOne(context.Background(), filter).Decode(&dbUser)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
@@ -150,6 +152,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
+	}
+
+	var profile struct {
+		Gender string `bson:"gender"`
+	}
+	err = profileCollection.FindOne(context.Background(), bson.M{"user_id": dbUser.ID}).Decode(&profile)
+	if err != nil {
+		profile.Gender = "all"
 	}
 
 	tokenString, err := utils.GenerateJWT(dbUser.ID.Hex())
@@ -162,6 +172,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		"token":    tokenString,
 		"username": dbUser.Username,
 		"email":    dbUser.Email,
+		"gender":   profile.Gender,
 	})
 }
 

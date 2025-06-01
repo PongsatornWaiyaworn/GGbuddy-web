@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
 import { Settings as SettingsIcon, Shield, UserX, Eye, EyeOff } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 const Settings = () => {
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
@@ -85,7 +86,9 @@ const Settings = () => {
   const checkCurrentPassword = async (): Promise<boolean> => {
     const email = localStorage.getItem("identifier");
     if (!email) {
-      alert("ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่");
+      toast({
+        description: "ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่",
+      });
       return false;
     }
   
@@ -101,22 +104,28 @@ const Settings = () => {
   
       if (!res.ok) {
         const data = await res.json();
-        alert(data.message || "รหัสผ่านปัจจุบันไม่ถูกต้อง");
+        toast({
+          description: data.message || "รหัสผ่านปัจจุบันไม่ถูกต้อง",
+        });
         return false;
       }
   
       return true;
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการตรวจสอบรหัสผ่าน:", error);
-      alert("เกิดข้อผิดพลาดในการตรวจสอบรหัสผ่าน");
+      toast({
+        description: "เกิดข้อผิดพลาดในการตรวจสอบรหัสผ่าน",
+      });
       return false;
     }
-  };  
-
+  };
+  
   const sendOtp = async () => {
     const email = localStorage.getItem("identifier");
     if (!email) {
-      alert("ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่");
+      toast({
+        description: "ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่",
+      });
       return;
     }
     try {
@@ -126,22 +135,30 @@ const Settings = () => {
         body: JSON.stringify({ email: email }),
       });
       if (!res.ok) throw new Error("ส่ง OTP ไม่สำเร็จ");
+  
+      toast({
+        description: `เราได้ส่งรหัส OTP ไปยัง ${email}`,
+      });
       setOtpSent(true);
       setWaitingForOtp(true);
-      setShowDialog_password(false)
+      setShowDialog_password(false);
     } catch (error) {
-      alert("เกิดข้อผิดพลาดในการส่ง OTP");
+      toast({
+        description: "เกิดข้อผิดพลาดในการส่ง OTP",
+      });
       console.error(error);
     }
   };
-
+  
   const verifyOtp = async () => {
     const email = localStorage.getItem("identifier");
     if (!email) {
-      alert("ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่");
+      toast({
+        description: "ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่",
+      });
       return;
     }
-
+  
     try {
       const res = await fetch("http://localhost:3000/verify-otp", {
         method: "POST",
@@ -159,18 +176,22 @@ const Settings = () => {
       console.error(error);
     }
   };
-
+  
   const changePassword = async () => {
     const email = localStorage.getItem("identifier");
     if (!email) {
-      alert("ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่");
+      toast({
+        description: "ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่",
+      });
       return;
     }
     if (passwords.new !== passwords.confirm) {
-      alert("รหัสผ่านใหม่ไม่ตรงกัน");
+      toast({
+        description: "รหัสผ่านใหม่ไม่ตรงกัน",
+      });
       return;
     }
-
+  
     try {
       const res = await fetch("http://localhost:3000/change-password", {
         method: "POST",
@@ -181,58 +202,70 @@ const Settings = () => {
         }),
       });
       if (!res.ok) throw new Error("เปลี่ยนรหัสผ่านไม่สำเร็จ");
-
-      alert("เปลี่ยนรหัสผ่านเรียบร้อยแล้ว");
+  
+      toast({
+        description: "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว",
+      });
       setPasswords({ current: "", new: "", confirm: "" });
       setOtp("");
       setOtpSent(false);
       setWaitingForOtp(false);
     } catch (error) {
-      alert("เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
+      toast({
+        description: "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน",
+      });
       console.error(error);
     }
   };
-
+  
   const handlePasswordChangeStart = async (e: React.FormEvent) => {
     e.preventDefault();
   
     if (passwords.new !== passwords.confirm) {
-      alert("รหัสผ่านใหม่ไม่ตรงกัน");
+      toast({
+        description: "รหัสผ่านใหม่ไม่ตรงกัน",
+      });
       return;
     }
   
     const isValid = await checkCurrentPassword();
     if (!isValid) return;
-
-    setShowDialog_password(true)
+  
+    setShowDialog_password(true);
   };
-
+  
   async function handleUnblockUser(blockedUsername: string): Promise<void> {
     try {
       const response = await fetch(`http://localhost:3000/unblock/${blockedUsername}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          blocker_username: username, 
+          blocker_username: username,
         }),
       });
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Unblock failed");
+        toast({
+          description: errorData.message || "ยกเลิกบล็อกผู้ใช้ไม่สำเร็จ",
+        });
+        return;
       }
-      
+  
       const data = await response.json();
-      alert(data.message); 
+      toast({
+        description: data.message || "ยกเลิกบล็อกผู้ใช้สำเร็จ",
+      });
       window.location.reload();
     } catch (error) {
       console.error("Unblock error:", error);
-      alert("เกิดข้อผิดพลาดในการยกเลิกบล็อกผู้ใช้");
+      toast({
+        description: "เกิดข้อผิดพลาดในการยกเลิกบล็อกผู้ใช้",
+      });
     }
-  }
-  
+  }  
 
   function handleDeleteAccount(): void {
     throw new Error("Function not implemented.");

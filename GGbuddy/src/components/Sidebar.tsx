@@ -74,7 +74,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="lg:hidden fixed top-4 left-4 z-[5]">
+      <div className="lg:hidden fixed top-4 left-4 z-[99]">
         <Button
           variant="ghost"
           className="text-white bg-black/50 hover:bg-black"
