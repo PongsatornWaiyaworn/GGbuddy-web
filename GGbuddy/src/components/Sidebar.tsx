@@ -63,7 +63,6 @@ const Sidebar = () => {
 
   const confirmLogout = () => {
     logout();
-    localStorage.removeItem("token");
     navigate("/");
     setShowConfirmLogout(false);
   };

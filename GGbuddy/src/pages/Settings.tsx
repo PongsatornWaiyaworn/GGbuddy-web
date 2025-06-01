@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
 import { Settings as SettingsIcon, Shield, UserX, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
@@ -267,9 +269,57 @@ const Settings = () => {
     }
   }  
 
-  function handleDeleteAccount(): void {
-    throw new Error("Function not implemented.");
-  }
+  function useDeleteAccount() {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+  
+    const handleDeleteAccount = async (username) => {
+      if (!username) {
+        toast({
+          description: "ไม่พบชื่อผู้ใช้",
+        });
+        return;
+      }
+  
+      const confirmDelete = window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี '${username}'? การกระทำนี้ไม่สามารถย้อนกลับได้`);
+      if (!confirmDelete) return;
+  
+      try {
+        const response = await fetch("http://localhost:3000/delete-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username }),
+        });
+  
+        const text = await response.text();
+  
+        if (!response.ok) {
+          const errorData = JSON.parse(text);
+          toast({
+            description: errorData.message || "ลบบัญชีไม่สำเร็จ",
+          });
+          return;
+        }
+  
+        toast({
+          description: "ลบบัญชีสำเร็จแล้ว",
+        });
+  
+        logout();
+        navigate("/");
+  
+      } catch (error) {
+        console.error("Delete Error:", error);
+        toast({
+          description: error.message || "เกิดข้อผิดพลาดในการลบบัญชี",
+        });
+      }
+    };
+  
+    return handleDeleteAccount;
+  }  
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
@@ -438,7 +488,7 @@ const Settings = () => {
                 <h4 className="text-white font-medium">ลบบัญชี (การลบบัญชีจะเป็นการลบบัญชีถาวร)</h4>
                 <Button
                   className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                  onClick={() => confirm(handleDeleteAccount)}
+                  onClick={() => confirm(useDeleteAccount)}
                 >
                   ลบบัญชี
                 </Button>
