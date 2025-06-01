@@ -42,6 +42,7 @@ const Profile = () => {
   const [imageSrc, setImageSrc] = useState(null);
   const [showCropper, setShowCropper] = useState(false);
   const inputFileRef = useRef<HTMLInputElement>(null);
+  const [showFullImage, setShowFullImage] = useState(false);
 
   const games = [
     { id: 'valorant', name: 'Valorant' },
@@ -201,7 +202,8 @@ const Profile = () => {
                   <img
                     src={profile.img}
                     alt="img"
-                    className="w-full h-full rounded-full object-cover"
+                    className="w-full h-full rounded-full object-cover transition duration-200 transform hover:scale-105 hover:brightness-90 cursor-pointer"
+                    onClick={() => setShowFullImage(true)}
                   />
                 ) : (
                   <span>
@@ -482,6 +484,21 @@ const Profile = () => {
               </div>
             </div>
           </div>
+        )}
+        
+        {showFullImage && (
+          <>
+            <div
+              className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center z-[999]"
+              onClick={() => setShowFullImage(false)}
+            >
+              <img
+                src={profile.img}
+                alt="Full Profile"
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            </div>
+          </>
         )}
 
       </main>

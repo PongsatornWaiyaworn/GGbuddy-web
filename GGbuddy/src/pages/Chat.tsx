@@ -63,6 +63,7 @@ const Chat = () => {
   const [showConfirmBlock, setShowConfirmBlock] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const selectedTeamData = teams.find((team) => team.id === selectedTeam);
+  const [showFullImage, setShowFullImage] = useState(false);
 
   const handleViewProfile = async (username: string) => {
     if (!memberProfiles[username]) {
@@ -86,7 +87,6 @@ const Chat = () => {
   
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-      // scroll ลงล่างสุดแบบ smooth
       scrollAreaRef.current.scrollTo({
         top: scrollAreaRef.current.scrollHeight,
         behavior: "smooth",
@@ -468,12 +468,12 @@ const Chat = () => {
                       >
                         {!isMyMessage && (
                           <img
-                            src={profile?.img}
+                            src={profile?.img || "../../public/LOGO GGbuddy.png"}
                             alt={profile?.display_name || "Unknown"}
-                            className="w-12 h-12 rounded-full border-2 border-gray-700 mr-2"
+                            className="w-12 h-12 rounded-full border-2 border-gray-700 mr-2 cursor-pointer hover:border-blue-500 hover:scale-105 hover:shadow-lg transition duration-200"
                             title={profile?.display_name || "Unknown"}
                             onClick={() => setPopupProfile(profile)}
-                          />
+                          />                        
                         )}
 
                         <div className="flex flex-col max-w-[70%]">
@@ -557,11 +557,13 @@ const Chat = () => {
               </button>
 
               <div className="flex items-center space-x-6 mb-5">
-                <img
-                  src={popupProfile.img}
-                  alt={popupProfile.display_name || "Unknown"}
-                  className="w-28 h-28 rounded-full border-4 border-gray-700 object-cover"
-                />
+              <img
+                src={popupProfile.img}
+                alt={popupProfile.display_name || "Unknown"}
+                className="w-28 h-28 rounded-full border-4 border-gray-700 object-cover cursor-pointer hover:opacity-80"
+                onClick={() => setShowFullImage(true)}
+              />
+
                 <div>
                   <h2 className="text-3xl font-semibold leading-tight">
                     {popupProfile.display_name || "Unknown"}
@@ -702,6 +704,21 @@ const Chat = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {showFullImage && (
+          <>
+            <div
+              className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
+              onClick={() => setShowFullImage(false)}
+            >
+              <img
+                src={popupProfile.img}
+                alt="Full Profile"
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            </div>
+          </>
         )}
 
       </main>

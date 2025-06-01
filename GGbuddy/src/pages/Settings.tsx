@@ -18,6 +18,8 @@ const Settings = () => {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
   const [blockedUsers, setBlockedUsers] = useState([]);
   const username = localStorage.getItem('username');
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`http://localhost:3000/blocked-list/${username}`)
@@ -30,6 +32,7 @@ const Settings = () => {
   const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [showDialog_passwords, setShowDialog_password] = useState(false);
+  const [showDialog_delete, setShowDialog_delete] = useState(false);
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
@@ -77,9 +80,8 @@ const Settings = () => {
   const executeConfirmedAction_password = () => {
     if (confirmAction) confirmAction();
     sendOtp()
-    setShowDialog(false);
+    setShowDialog_password(false);
   };
-
 
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
@@ -269,57 +271,51 @@ const Settings = () => {
     }
   }  
 
-  function useDeleteAccount() {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
-  
-    const handleDeleteAccount = async (username) => {
-      if (!username) {
+  const handleDeleteAccount = async (username) => {
+    if (!username) {
+      toast({
+        description: "ไม่พบชื่อผู้ใช้",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/delete-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        const errorData = JSON.parse(text);
         toast({
-          description: "ไม่พบชื่อผู้ใช้",
+          description: errorData.message || "ลบบัญชีไม่สำเร็จ",
         });
         return;
       }
-  
-      const confirmDelete = window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี '${username}'? การกระทำนี้ไม่สามารถย้อนกลับได้`);
-      if (!confirmDelete) return;
-  
-      try {
-        const response = await fetch("http://localhost:3000/delete-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username }),
-        });
-  
-        const text = await response.text();
-  
-        if (!response.ok) {
-          const errorData = JSON.parse(text);
-          toast({
-            description: errorData.message || "ลบบัญชีไม่สำเร็จ",
-          });
-          return;
-        }
-  
-        toast({
-          description: "ลบบัญชีสำเร็จแล้ว",
-        });
-  
-        logout();
-        navigate("/");
-  
-      } catch (error) {
-        console.error("Delete Error:", error);
-        toast({
-          description: error.message || "เกิดข้อผิดพลาดในการลบบัญชี",
-        });
-      }
-    };
-  
-    return handleDeleteAccount;
-  }  
+
+      toast({
+        description: "ลบบัญชีสำเร็จแล้ว",
+      });
+
+      logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Delete Error:", error);
+      toast({
+        description: error.message || "เกิดข้อผิดพลาดในการลบบัญชี",
+      });
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    await handleDeleteAccount(username);
+    setShowDialog_delete(false);
+  };
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
@@ -435,7 +431,6 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* Blocked Users & Account Actions ส่วนอื่น ๆ เหมือนเดิม */}
           <Card className="bg-white/10 backdrop-blur-lg border-white/20">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -488,7 +483,7 @@ const Settings = () => {
                 <h4 className="text-white font-medium">ลบบัญชี (การลบบัญชีจะเป็นการลบบัญชีถาวร)</h4>
                 <Button
                   className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                  onClick={() => confirm(useDeleteAccount)}
+                  onClick={() => setShowDialog_delete(true)}
                 >
                   ลบบัญชี
                 </Button>
@@ -524,7 +519,9 @@ const Settings = () => {
           <DialogHeader>
             <DialogTitle>คุณแน่ใจหรือไม่?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">โปรดยืนยันการดำเนินการนี้</p>
+          <p className="text-sm text-red-600 font-semibold">
+            คุณกำลังจะเปลี่ยนรหัสผ่านใหม่ โปรดยืนยันว่าต้องการดำเนินการต่อ
+          </p>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setShowDialog_password(false)}>
               ยกเลิก
@@ -532,6 +529,29 @@ const Settings = () => {
             <Button
               className="bg-red-600 text-white hover:bg-red-700"
               onClick={executeConfirmedAction_password}
+            >
+              ดำเนินการต่อ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDialog_delete} onOpenChange={setShowDialog_delete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>คุณแน่ใจหรือไม่?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">
+            การลบบัญชีนี้จะเป็นการลบข้อมูลทั้งหมดอย่างถาวร และไม่สามารถกู้คืนได้
+            โปรดตรวจสอบให้แน่ใจก่อนดำเนินการ
+          </p>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowDialog_delete(false)}>
+              ยกเลิก
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={onConfirmDelete}
             >
               ดำเนินการต่อ
             </Button>
