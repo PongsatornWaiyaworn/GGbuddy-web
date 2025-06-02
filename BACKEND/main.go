@@ -27,8 +27,6 @@ func main() {
 		log.Fatal("ALLOWED_ORIGIN not set in environment")
 	}
 
-	allowedOrigins := strings.Split(allowedOriginEnv, ",")
-
 	_, err = database.ConnectToMongoDB()
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
@@ -64,13 +62,21 @@ func main() {
 	authMiddleware := middleware.AuthMiddleware
 	handlerWithAuth := authMiddleware(r)
 
-	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   allowedOrigins,
+	corsOptions := cors.Options{
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
-	})
+	}
 
+	if allowedOriginEnv == "*" {
+		corsOptions.AllowOriginFunc = func(origin string) bool {
+			return true
+		}
+	} else {
+		corsOptions.AllowedOrigins = strings.Split(allowedOriginEnv, ",")
+	}
+
+	corsMiddleware := cors.New(corsOptions)
 	handler := corsMiddleware.Handler(handlerWithAuth)
 
 	port := os.Getenv("PORT")
@@ -79,4 +85,7 @@ func main() {
 	}
 	fmt.Println("Server started at port:" + port)
 	err = http.ListenAndServe(":"+port, handler)
+	if err != nil {
+		log.Fatal("Server error:", err)
+	}
 }
