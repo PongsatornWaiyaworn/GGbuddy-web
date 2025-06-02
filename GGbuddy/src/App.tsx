@@ -12,6 +12,7 @@ import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
+import Team from "./pages/Team";
 
 import { AuthProvider } from "./AuthContext";
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/team-dev" element={<Team />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
