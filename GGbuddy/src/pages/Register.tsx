@@ -14,6 +14,7 @@ import { Slider } from '@/components/ui/slider'
 import AWS from "aws-sdk";
 import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const games = [
   { id: 'valorant', name: 'Valorant' },
@@ -43,6 +44,7 @@ const interestsList = [
 
 const Register = () => {
   const inputFileRef = useRef<HTMLInputElement>(null);
+  const token = localStorage.getItem("token");
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -98,10 +100,11 @@ const Register = () => {
       data: cleanBase64,
     };
   
-    console.log(payload);
-  
-    const response = await axios.post("http://localhost:3000/upload-s3", payload, {
-      headers: { "Content-Type": "application/json" },
+    const response = await axios.post(`${API_BASE_URL}/upload-s3`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
   
     return response.data.url;
@@ -135,9 +138,15 @@ const Register = () => {
           img: imgUrl,
         },
       };
-      console.log(payload);
   
-      await axios.post("http://localhost:3000/register", payload);
+      await axios.post(`${API_BASE_URL}/register`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+      
       toast({
         title: "สร้างบัญชีสำเร็จ",
         description: "คุณสามารถเข้าสู่ระบบได้แล้ว",
@@ -154,9 +163,12 @@ const Register = () => {
   
   const sendOtpToBackend = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:3000/send-otp", {
+      const res = await fetch(`${API_BASE_URL}/send-otp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email: formData.email }),
       });
   
@@ -225,9 +237,12 @@ const Register = () => {
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://127.0.0.1:3000/verify-otp', {
+      const res = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email: formData.email, code: otp })
       });
   
@@ -355,41 +370,13 @@ const Register = () => {
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                      ></path>
-                    </svg>
-                    กำลังส่งOTP...
-                  </div>
+                  <span className="flex items-center">
+                    กำลังส่ง OTP
+                  </span>
                 ) : (
                   "สมัครสมาชิก"
                 )}
               </Button>
-              <div className="mt-6 text-center">
-                <Link 
-                  to="/login" 
-                  className="text-orange-400 hover:text-orange-300 underline text-sm"
-                >
-                  กลับไปหน้าเข้าสู่ระบบ
-                </Link>
-              </div>
             </form>
           )}
 
@@ -592,14 +579,12 @@ const Register = () => {
 
         </CardContent>
         <CardContent className="text-center">
-          {step !== 1 && (
             <Link
               to="/login"
-              className="text-xs text-white underline underline-offset-4"
+              className="text-orange-400 hover:text-orange-300 underline text-sm"
             >
               กลับไปหน้าเข้าสู่ระบบ
             </Link>
-          )}
         </CardContent>
       </Card>
 

@@ -12,6 +12,7 @@ import axios from "axios";
 import Cropper from "react-easy-crop";
 import getCroppedImg from '../lib/cropImage' 
 import { toast } from "@/components/ui/use-toast";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface ProfileData {
   username: string;
@@ -79,10 +80,12 @@ const Profile = () => {
       }
 
       try {
-        const res = await axios.get(`http://localhost:3000/profile?identifier=${loggedInidentifier}`, {
+        const res = await axios.get(`${API_BASE_URL}/profile?identifier=${loggedInidentifier}`, {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`, 
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
         });
 
         setProfile(res.data);
@@ -116,10 +119,12 @@ const Profile = () => {
       data: cleanBase64,
     };
   
-    console.log(payload);
-  
-    const response = await axios.post("http://localhost:3000/upload-s3", payload, {
-      headers: { "Content-Type": "application/json" },
+    const response = await axios.post(`${API_BASE_URL}/upload-s3`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`, 
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
     });
   
     return response.data.url;
@@ -155,11 +160,12 @@ const Profile = () => {
     if (!profile) return;
 
     try {
-      await axios.put(`http://localhost:3000/profile`, profile, {
+      await axios.put(`${API_BASE_URL}/profile`, profile, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`, 
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
       });
       toast({
         title: "อัปเดตข้อมูลสำเร็จ",

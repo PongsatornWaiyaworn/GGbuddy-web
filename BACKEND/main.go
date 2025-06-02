@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-	// เชื่อมต่อ MongoDB
 	_, err := database.ConnectToMongoDB()
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
@@ -52,7 +51,7 @@ func main() {
 	handlerWithAuth := authMiddleware(r)
 
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"http://localhost:8080"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -60,7 +59,7 @@ func main() {
 
 	handler := corsMiddleware.Handler(handlerWithAuth)
 
-	fmt.Println("Server started at http://localhost:3000")
+	fmt.Println("Server started at port:3000")
 	err = http.ListenAndServe(":3000", handler)
 	if err != nil {
 		log.Fatal(err)

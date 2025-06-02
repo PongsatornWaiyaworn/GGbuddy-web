@@ -5,7 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
-import { Menu, MessageSquare, Send, Users } from "lucide-react";
+import { ImageIcon, Menu, MessageSquare, Send, Users } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL_SOCKET = import.meta.env.VITE_API_BASE_URL_SOCKET;
 
 interface Message {
   id?: number;
@@ -50,7 +54,7 @@ const games = [
 ];
 
 const Chat = () => {
-  
+  const token = localStorage.getItem("token");
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState("");
@@ -64,22 +68,132 @@ const Chat = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const selectedTeamData = teams.find((team) => team.id === selectedTeam);
   const [showFullImage, setShowFullImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showFullImage_message, setShowFullImage_message] = useState(false);
+  const [fullImageSrc_message, setFullImageSrc_message] = useState("");
+
+  const handleImageUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  function stripBase64Header(base64String: string): string {
+    const parts = base64String.split(',');
+    return parts.length > 1 ? parts[1] : base64String;
+  }
+  
+  function generateUniqueFilename(originalName: string): string {
+    const timestamp = Date.now();
+    const extension = originalName.substring(originalName.lastIndexOf('.') + 1);
+    return `user_${timestamp}.${extension}`;
+  }
+  
+  async function uploadImageToS3(file: File): Promise<string> {
+    const reader = new FileReader();
+  
+    return new Promise((resolve, reject) => {
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        const cleanBase64 = stripBase64Header(base64);
+        const filename = generateUniqueFilename(file.name);
+  
+        try {
+          const response = await axios.post(`${API_BASE_URL}/upload-s3`, {
+            filename: filename,
+            data: cleanBase64,
+          }, {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          });
+  
+          resolve(response.data.url); 
+        } catch (error) {
+          reject(error);
+        }
+      };
+  
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    try {
+      const imageUrl = await uploadImageToS3(file); 
+
+      if (selectedTeam !== null && ws && ws.readyState === WebSocket.OPEN) {
+        const imageMessage = {
+          group_id: selectedTeam,
+          sender_id: username,
+          content: imageUrl,
+          type: "image",
+        };
+  
+        ws.send(JSON.stringify(imageMessage));
+  
+        setTeams((prevTeams) =>
+          prevTeams.map((team) =>
+            team.id === selectedTeam
+              ? {
+                  ...team,
+                  messages: [
+                    ...(team.messages || []),
+                    {
+                      sender_id: username,
+                      content: imageUrl,
+                      isUserMessage: true,
+                      timestamp: new Date().toISOString(),
+                      type: "image",
+                    },
+                  ],
+                  lastMessage: "[ส่งภาพ]",
+                }
+              : team
+          )
+        );
+  
+        scrollToBottom();
+      }
+    } catch (err) {
+      console.error("Error uploading image:", err);
+    }
+  };  
 
   const handleViewProfile = async (username: string) => {
     if (!memberProfiles[username]) {
       try {
-        const res = await fetch(`http://localhost:3000/profile?identifier=${username}`);
+        const res = await fetch(`${API_BASE_URL}/profile?identifier=${username}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: 'include', 
+        });
+  
+        if (!res.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+  
         const data = await res.json();
         setMemberProfiles(prev => ({ ...prev, [username]: data }));
         setPopupProfile(data);
       } catch (err) {
         console.error("Error fetching new profile:", err);
-        alert("เกิดข้อผิดพลาดในการโหลดโปรไฟล์");
+        toast({
+          description: "เกิดข้อผิดพลาดในการโหลดโปรไฟล์",
+        });
       }
     } else {
       setPopupProfile(memberProfiles[username]);
     }
   };
+  
   
   useEffect(() => {
     scrollToBottom();
@@ -95,8 +209,18 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/chats?user=${username}`)
-      .then((res) => res.json())
+    fetch(`${API_BASE_URL}/api/chats?user=${username}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch chats");
+        return res.json();
+      })
       .then((data: Team[]) => {
         const sortedTeams = data.sort(
           (a, b) =>
@@ -110,11 +234,19 @@ const Chat = () => {
       })
       .catch((err) => console.error("Error fetching chats:", err));
   }, [username]);
+  
 
   useEffect(() => {
     if (selectedTeam === null) return;
 
-    fetch(`http://localhost:3000/messages?group_id=${selectedTeam}`)
+    fetch(`${API_BASE_URL}/messages?group_id=${selectedTeam}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: 'include',
+    })
       .then((res) => res.json())
       .then(async (messages: Message[]) => {
         setTeams((prevTeams) =>
@@ -126,7 +258,7 @@ const Chat = () => {
         const uniqueSenderIds = Array.from(new Set(messages.map(m => m.sender_id)));
       
         const profilePromises = uniqueSenderIds.map(id =>
-          fetch(`http://localhost:3000/profile?identifier=${id}`)
+          fetch(`${API_BASE_URL}/profile?identifier=${id}`)
             .then(res => res.json())
             .then(data => ({ id, data }))
             .catch(() => null)
@@ -145,7 +277,7 @@ const Chat = () => {
       })
 
     const socket = new WebSocket(
-      `ws://localhost:3000/ws?username=${username}&group_id=${selectedTeam}`
+      `${API_BASE_URL_SOCKET}/ws?username=${username}&group_id=${selectedTeam}`
     );
 
     socket.onopen = () => console.log("Connected to WebSocket");
@@ -154,7 +286,7 @@ const Chat = () => {
     
       if (!memberProfiles[receivedMessage.sender_id]) {
         try {
-          const res = await fetch(`http://localhost:3000/profile?identifier=${receivedMessage.sender_id}`);
+          const res = await fetch(`${API_BASE_URL}/profile?identifier=${receivedMessage.sender_id}`);
           const data = await res.json();
           setMemberProfiles(prev => ({ ...prev, [receivedMessage.sender_id]: data }));
         } catch (err) {
@@ -198,11 +330,13 @@ const Chat = () => {
     blockedDisplayName?: string
   ): Promise<void> {
     try {
-      const response = await fetch(`http://localhost:3000/block/${blockedUsername}`, {
+      const response = await fetch(`${API_BASE_URL}/block/${blockedUsername}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
+        credentials: 'include', 
         body: JSON.stringify({
           blocker_username: blockerUsername,
           blocked_display_name: blockedDisplayName || '',
@@ -223,9 +357,13 @@ const Chat = () => {
         throw new Error(errorMessage);
       }
   
-      alert('บล็อคผู้ใช้เรียบร้อยแล้ว');
+      toast({
+        description: "บล็อคผู้ใช้สำเร็จ",
+      });
     } catch (error) {
-      alert('ไม่สามารถบล็อคผู้ใช้ได้: ' + (error.message || error));
+      toast({
+        description: "ไม่สามารถบล็อคผู้ใช้ได้",
+      });
     }
   }
   
@@ -368,7 +506,7 @@ const Chat = () => {
               </h2>
             </div>
 
-            <ScrollArea className="flex-1 overflow-y-auto">
+            <ScrollArea className="flex-1 overflow-y-auto hide-scrollbar">
               <div className="p-4 space-y-3">
                 {teams.map((team) => {
                   const gameNameFromTeam = team.name.split("-")[0]?.trim();
@@ -448,7 +586,7 @@ const Chat = () => {
 
               <div
                 ref={scrollAreaRef}
-                className="flex-1 p-6 space-y-4 overflow-y-auto pb-0 max-h-[80vh]"
+                className="flex-1 p-0 space-y-4 overflow-y-auto pb-0 max-h-[100vh]"
                 style={{
                   scrollbarWidth: "none",
                   msOverflowStyle: "none",
@@ -462,13 +600,13 @@ const Chat = () => {
                     return (
                       <div
                         key={index}
-                        className={`flex items-center px-4 my-2 ${
+                        className={`flex items-center px-[1vh] my-2 ${
                           isMyMessage ? "justify-end" : "justify-start"
                         }`}
                       >
                         {!isMyMessage && (
                           <img
-                            src={profile?.img || "../../public/LOGO GGbuddy.png"}
+                            src={profile?.img || "https://ggbuddy.s3.ap-southeast-2.amazonaws.com/example.png"}
                             alt={profile?.display_name || "Unknown"}
                             className="w-12 h-12 rounded-full border-2 border-gray-700 mr-2 cursor-pointer hover:border-blue-500 hover:scale-105 hover:shadow-lg transition duration-200"
                             title={profile?.display_name || "Unknown"}
@@ -490,7 +628,21 @@ const Chat = () => {
                                 : "bg-gray-800 text-gray-200 rounded-tl-none border border-gray-700"
                             }`}
                           >
-                            <p className="text-sm leading-relaxed select-text">{message.content}</p>
+                            {message.content.startsWith("https://ggbuddy.s3.ap-southeast-2.amazonaws.com/") ? (
+                              <img
+                                onClick={() => {
+                                  setFullImageSrc_message(message.content);
+                                  setShowFullImage_message(true);
+                                }}
+                                onLoad={scrollToBottom}
+                                src={message.content}
+                                alt="uploaded"
+                                className="max-w-[20vh] max-h-[20vh] w-auto h-auto rounded-lg border border-gray-700 cursor-pointer hover:opacity-90 transition"
+                              />
+                            ) : (
+                              <p className="text-sm leading-relaxed select-text">{message.content}</p>
+                            )}
+
                           </div>
 
                           {message.timestamp && (
@@ -513,7 +665,7 @@ const Chat = () => {
 
             <form
               onSubmit={handleSendMessage}
-              className="fixed bottom-0 left-0 right-0 p-4 border-t border-gray-700 flex items-center gap-2 bg-gray-900/90 z-50"
+              className="bottom-0 left-0 right-0 p-[1vh] border-t border-gray-700 flex items-center gap-2 bg-gray-900/90 z-50"
             >
               <Input
                 placeholder="พิมพ์ข้อความ..."
@@ -524,12 +676,30 @@ const Chat = () => {
                 spellCheck={false}
               />
               <Button
+                type="button"
+                onClick={handleImageUploadClick}
+                className="p-4 text-gray-100 bg-blue-600 hover:bg-blue-700 rounded"
+              >
+                <ImageIcon size={22} />
+              </Button>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                ref={fileInputRef}
+                className="hidden"
+              />
+
+              <Button
                 type="submit"
                 disabled={!newMessage.trim()}
                 variant="secondary"
-                className="p-2"
+                className={`px-6 py-4 text-sm font-medium rounded 
+                  ${newMessage.trim() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-600 text-gray-300 cursor-not-allowed'}
+                `}
               >
-                <Send size={20} />
+                <Send size={25} />
               </Button>
             </form>
           </>
@@ -719,6 +889,18 @@ const Chat = () => {
               />
             </div>
           </>
+        )}
+        {showFullImage_message && fullImageSrc_message && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
+            onClick={() => setShowFullImage_message(false)}
+          >
+            <img
+              src={fullImageSrc_message}
+              alt="Full View"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+            />
+          </div>
         )}
 
       </main>

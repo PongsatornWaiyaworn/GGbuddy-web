@@ -2,14 +2,18 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 )
 
-// GenerateJWT สร้าง JWT Token
 func GenerateJWT(userID string) (string, error) {
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Warning: .env file not loaded, using system env")
+	}
 	secretKey := os.Getenv("JWT_SECRET")
 	if secretKey == "" {
 		return "", errors.New("missing JWT_SECRET in environment variables")

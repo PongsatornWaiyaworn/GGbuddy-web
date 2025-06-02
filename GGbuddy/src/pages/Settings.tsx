@@ -12,6 +12,7 @@ import { Settings as SettingsIcon, Shield, UserX, Eye, EyeOff } from "lucide-rea
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Settings = () => {
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
@@ -20,14 +21,26 @@ const Settings = () => {
   const username = localStorage.getItem('username');
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const meemail = localStorage.getItem("email");
 
   useEffect(() => {
-    fetch(`http://localhost:3000/blocked-list/${username}`)
+    const token = localStorage.getItem("token");
+    fetch(`${API_BASE_URL}/blocked-list/${username}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: 'include',
+    })
       .then(res => res.json())
-      .then(data => setBlockedUsers(data))
+      .then(data => {
+        setBlockedUsers(data);
+      })
       .catch(err => console.error("โหลดข้อมูลผู้ใช้ที่ถูกบล็อกล้มเหลว", err));
-      console.log(blockedUsers)
-  }, []);  
+  }, [username]); 
+   
 
   const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -97,9 +110,12 @@ const Settings = () => {
     }
   
     try {
-      const res = await fetch("http://localhost:3000/check-password", {
+      const res = await fetch(`${API_BASE_URL}/check-password`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           identifier: email,
           password: passwords.current,
@@ -133,15 +149,18 @@ const Settings = () => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:3000/send-otp", {
+      const res = await fetch(`${API_BASE_URL}/send-otp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email: email }),
       });
       if (!res.ok) throw new Error("ส่ง OTP ไม่สำเร็จ");
   
       toast({
-        description: `เราได้ส่งรหัส OTP ไปยัง ${email}`,
+        description: `เราได้ส่งรหัส OTP ไปยัง ${meemail}`,
       });
       setOtpSent(true);
       setWaitingForOtp(true);
@@ -164,9 +183,12 @@ const Settings = () => {
     }
   
     try {
-      const res = await fetch("http://localhost:3000/verify-otp", {
+      const res = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email: email, code: otp }),
       });
       if (!res.ok) {
@@ -197,9 +219,12 @@ const Settings = () => {
     }
   
     try {
-      const res = await fetch("http://localhost:3000/change-password", {
+      const res = await fetch(`${API_BASE_URL}/change-password`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           identifier: email,
           new_password: passwords.new,
@@ -240,9 +265,10 @@ const Settings = () => {
   
   async function handleUnblockUser(blockedUsername: string): Promise<void> {
     try {
-      const response = await fetch(`http://localhost:3000/unblock/${blockedUsername}`, {
+      const response = await fetch(`${API_BASE_URL}/unblock/${blockedUsername}`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -280,9 +306,10 @@ const Settings = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/delete-user", {
+      const response = await fetch(`${API_BASE_URL}/delete-user`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username }),

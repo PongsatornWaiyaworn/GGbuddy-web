@@ -26,7 +26,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// 1. ลบจาก blocked_users ที่มี blocker_username ตรงกับ username
 	blockedCol := database.GetCollection("ggbuddy", "blocked_users")
 	_, err := blockedCol.DeleteMany(ctx, bson.M{"blocker_username": username})
 	if err != nil {
@@ -34,7 +33,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. ลบจาก users
 	usersCol := database.GetCollection("ggbuddy", "users")
 	_, err = usersCol.DeleteOne(ctx, bson.M{"username": username})
 	if err != nil {
@@ -42,7 +40,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. ลบจาก profiles
 	profilesCol := database.GetCollection("ggbuddy", "profiles")
 	_, err = profilesCol.DeleteOne(ctx, bson.M{"username": username})
 	if err != nil {
@@ -50,7 +47,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. อัปเดต groups ให้ลบสมาชิกจาก members
 	groupsCol := database.GetCollection("ggbuddy", "groups")
 	_, err = groupsCol.UpdateMany(
 		ctx,
@@ -62,7 +58,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 5. อัปเดต messages ให้ sender_id เป็น "ไม่มี user นี้แล้ว"
 	messagesCol := database.GetCollection("ggbuddy", "messages")
 	_, err = messagesCol.UpdateMany(
 		ctx,

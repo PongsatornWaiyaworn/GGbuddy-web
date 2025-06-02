@@ -8,6 +8,8 @@ import Sidebar from "@/components/Sidebar";
 import { Users, Filter } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL_SOCKET = import.meta.env.VITE_API_BASE_URL_SOCKET;
 
 const TeamFinder = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
@@ -52,27 +54,38 @@ const TeamFinder = () => {
 
   const [isCustom, setIsCustom] = useState(false);
   const [customValue, setCustomValue] = useState('');
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/profile?identifier=${Inidentifier}`);
+        const res = await axios.get(
+          `${API_BASE_URL}/profile?identifier=${Inidentifier}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+  
         const profileData = res.data;
         setFilters((prev) => ({
           ...prev,
           interests: profileData.interests || [],
         }));
-        setImageSrc(profileData.img)
-
+        setImageSrc(profileData.img);
+  
       } catch (error) {
         console.error("Error fetching profile:", error);
       }
     };
-
+  
     if (Inidentifier) {
       fetchProfile();
     }
-  }, [Inidentifier]);
+  }, [Inidentifier]);  
 
   const handleValueChange = (value: string) => {
     if (value === 'custom') {
@@ -112,7 +125,7 @@ const TeamFinder = () => {
       return;
     }
     
-    ws.current = new WebSocket(`ws://localhost:3000/ws-match?username=${username}`);
+    ws.current = new WebSocket(`${API_BASE_URL_SOCKET}/ws-match?username=${username}`);
 
     ws.current.onopen = () => {
       console.log("WebSocket connected");
@@ -127,8 +140,6 @@ const TeamFinder = () => {
         group_size: parseInt(filters.group_size),
         mode: filters.mode
       };
-
-      console.log(payload)
     
       ws.current?.send(JSON.stringify(payload));
     };
@@ -158,8 +169,13 @@ const TeamFinder = () => {
   };
 
   const stopMatching = () => {
-    fetch(`http://localhost:3000/matching/delete?username=${username}`, {
-      method: 'DELETE'
+    fetch(`${API_BASE_URL}/matching/delete?username=${username}`, {
+      method: 'DELETE', 
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: 'include', 
     })
     .then(response => {
       if (!response.ok) {
@@ -167,14 +183,19 @@ const TeamFinder = () => {
       }
       return response.text();
     })
-    setIsMatching(false);
-    setCountdown(300);
-    if (ws.current) {
-      ws.current.close();
-      ws.current = null;
-    }
+    .then(() => {
+      setIsMatching(false);
+      setCountdown(300);
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
+      }
+    })
+    .catch(error => {
+      console.error(error);
+    });
   };
-
+  
   // นับเวลาถอยหลัง
   useEffect(() => {
     if (!isMatching) return;

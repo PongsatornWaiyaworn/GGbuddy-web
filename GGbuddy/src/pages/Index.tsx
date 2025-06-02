@@ -6,11 +6,10 @@ import { useAuth } from "../AuthContext";
 import { useState } from "react";
 
 const Index = () => {
-  // ใช้ useState เพื่อตรวจสอบสถานะการล็อกอิน
   const { isLoggedIn } = useAuth();
 
   return (
-    <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900">
+    <div className="min-h-screen flex p-[1vh] w-full bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900">
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
@@ -39,7 +38,6 @@ const Index = () => {
               </p>
             </div>
 
-            {/* เงื่อนไขการแสดงปุ่ม */}
             {!isLoggedIn && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                 <Button 
