@@ -407,8 +407,8 @@ const Register = () => {
           )}
 
           {step === 3 && (
-            <main className="flex-1 overflow-auto px-4 sm:px-6 py-6">
-              <div className="max-w-6xl mx-auto min-w-full sm:min-w-[480px] md:min-w-[600px] lg:min-w-[720px]">
+            <main className="flex-1 overflow-auto px-4 sm:px-6 py-6 ">
+              <div className="max-w-6xl mx-auto min-w-full sm:min-w-[480px] md:min-w-[600px] lg:min-w-[720px] bg-gradient-to-br from-gray-800 via-gray-850 to-gray-700">
                 <Card className="bg-white/10 backdrop-blur-lg border-white/20">
                   <CardHeader>
                     <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
