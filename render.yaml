@@ -11,6 +11,6 @@ services:
     name: ggbuddy
     env: node
     rootDir: GGbuddy
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
+    buildCommand: npm install
+    startCommand: npm start
     autoDeploy: true
