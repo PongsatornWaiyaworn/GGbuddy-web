@@ -70,9 +70,10 @@ func main() {
 
 	handler := corsMiddleware.Handler(handlerWithAuth)
 
-	fmt.Println("Server started at port:3000")
-	err = http.ListenAndServe(":3000", handler)
-	if err != nil {
-		log.Fatal(err)
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT not set in environment")
 	}
+	fmt.Println("Server started at port:" + port)
+	err = http.ListenAndServe(":"+port, handler)
 }
