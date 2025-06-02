@@ -13,6 +13,6 @@ services:
     env: node
     rootDir: GGbuddy
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: npm run dev
     autoDeploy: true
     plan: free
