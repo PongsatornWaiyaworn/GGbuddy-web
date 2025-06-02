@@ -175,7 +175,7 @@ const Sidebar = () => {
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <div
-            ref={sidebarRef} // <-- ใส่ ref ที่ mobile sidebar ด้วย
+            ref={sidebarRef} 
             className="absolute left-0 top-0 bottom-0 w-64 bg-gray-900 shadow-xl p-4"
           >
             <div className="flex justify-between items-center mb-4">

@@ -59,7 +59,7 @@ const Index = () => {
               )}
 
               {/* Features Section */}
-              <div className="grid gap-6 md:grid-cols-3 mt-10 px-4">
+              <div className="grid gap-6 md:grid-cols-3 mt-10 px-4 pb-12">
                 <Card className="bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 transition-transform duration-300 hover:scale-[1.03] rounded-2xl shadow-md">
                   <CardContent className="p-8 text-center">
                     <div className="text-5xl mb-4">🎮</div>
