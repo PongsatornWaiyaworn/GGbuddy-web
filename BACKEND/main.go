@@ -4,17 +4,29 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"ggbuddy/database"
 	"ggbuddy/handlers"
 	"ggbuddy/middleware"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
 
 func main() {
-	_, err := database.ConnectToMongoDB()
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using system env variables")
+	}
+
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		log.Fatal("ALLOWED_ORIGIN not set in environment")
+	}
+
+	_, err = database.ConnectToMongoDB()
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
 		return
@@ -47,11 +59,10 @@ func main() {
 	r.HandleFunc("/delete-user", handlers.DeleteUserHandler).Methods("POST")
 
 	authMiddleware := middleware.AuthMiddleware
-
 	handlerWithAuth := authMiddleware(r)
 
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedOrigins:   []string{allowedOrigin},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
