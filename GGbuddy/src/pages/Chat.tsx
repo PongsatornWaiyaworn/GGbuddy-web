@@ -250,7 +250,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (selectedTeam === null) return;
-
+  
     fetch(`${API_BASE_URL}/messages?group_id=${selectedTeam}`, {
       method: 'GET',
       headers: {
@@ -266,16 +266,23 @@ const Chat = () => {
             team.id === selectedTeam ? { ...team, messages } : team
           )
         );
-      
+  
         const uniqueSenderIds = Array.from(new Set(messages.map(m => m.sender_id)));
-      
+  
         const profilePromises = uniqueSenderIds.map(id =>
-          fetch(`${API_BASE_URL}/profile?identifier=${id}`)
+          fetch(`${API_BASE_URL}/profile?identifier=${id}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: 'include',
+          })
             .then(res => res.json())
             .then(data => ({ id, data }))
             .catch(() => null)
         );
-      
+  
         const profiles = await Promise.all(profilePromises);
         const profileMap: { [key: string]: Profile } = {};
         profiles.forEach(profile => {
@@ -283,29 +290,37 @@ const Chat = () => {
             profileMap[profile.id] = profile.data;
           }
         });
-      
+  
         setMemberProfiles(profileMap);
         scrollToBottom();
-      })
-
+      });
+  
     const socket = new WebSocket(
       `${API_BASE_URL_SOCKET}/ws?username=${username}&group_id=${selectedTeam}`
     );
-
+  
     socket.onopen = () => console.log("Connected to WebSocket");
+  
     socket.onmessage = async (event) => {
       const receivedMessage = JSON.parse(event.data);
-    
+  
       if (!memberProfiles[receivedMessage.sender_id]) {
         try {
-          const res = await fetch(`${API_BASE_URL}/profile?identifier=${receivedMessage.sender_id}`);
+          const res = await fetch(`${API_BASE_URL}/profile?identifier=${receivedMessage.sender_id}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: 'include',
+          });
           const data = await res.json();
           setMemberProfiles(prev => ({ ...prev, [receivedMessage.sender_id]: data }));
         } catch (err) {
           console.error("Error fetching new profile:", err);
         }
       }
-    
+  
       setTeams((prevTeams) =>
         prevTeams.map((team) =>
           team.id === receivedMessage.group_id
@@ -326,15 +341,16 @@ const Chat = () => {
         )
       );
     };
+  
     socket.onclose = () => console.log("Disconnected from WebSocket");
     socket.onerror = (error) => console.error("WebSocket error:", error);
-
+  
     setWs(socket);
-
+  
     return () => {
       socket.close();
     };
-  }, [selectedTeam, username]);
+  }, [selectedTeam, username, token]);  
 
   async function blockUser(
     blockedUsername: string,
