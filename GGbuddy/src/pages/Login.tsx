@@ -61,7 +61,7 @@ const Login = () => {
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
             <img 
-              src="/public/LOGO GGbuddy.png" 
+              src="/LOGO GGbuddy.png" 
               alt="GGbuddy Logo" 
               className="h-16 mx-auto"
               onError={(e) => {

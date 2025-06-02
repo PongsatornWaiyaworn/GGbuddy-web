@@ -98,7 +98,7 @@ const Sidebar = () => {
             {!isCollapsed && (
               <div className="flex items-center space-x-2">
                 <img
-                  src="/public/LOGO GGbuddy.png"
+                  src="/LOGO GGbuddy.png"
                   alt="GGbuddy Logo"
                   className="h-8 w-auto"
                 />

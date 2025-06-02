@@ -18,7 +18,7 @@ const Index = () => {
             <div className="max-w-5xl mx-auto text-center">
               <div className="mb-12">
                 <img
-                  src="/public/LOGO GGbuddy.png"
+                  src="/LOGO GGbuddy.png"
                   alt="GGbuddy Logo"
                   className="h-20 sm:h-32 md:h-40 mx-auto mb-6 drop-shadow-xl"
                   onError={(e) => {

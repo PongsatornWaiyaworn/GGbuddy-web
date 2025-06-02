@@ -537,7 +537,7 @@ const Chat = () => {
                       <CardContent className="p-4">
                         <div className="flex gap-4 items-center">
                           <img
-                            src={matchedGame?.icon || "/default-icon.png"}
+                            src={matchedGame?.icon || "/LOGO.png"}
                             alt="Game Icon"
                             className="w-12 h-12 rounded-md object-cover"
                           />

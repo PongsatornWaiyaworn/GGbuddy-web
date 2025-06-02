@@ -4,7 +4,7 @@ const teamMembers = [
   {
     name: "โอม (นฤพนธ์ ฉายสุวรรณคีรี)",
     role: "Frontend Developer",
-    image: "../../public/ohm.png",
+    image: "/ohm.png",
     contact: {
       instagram: "https://www.instagram.com/aguywhocantswim/",
       facebook: "https://web.facebook.com/narupon.chaizuwankeeree?locale=th_TH",
@@ -13,7 +13,7 @@ const teamMembers = [
   {
     name: "ตี๋ (พงศธร ไวยวรณ์)",
     role: "Backend Developer",
-    image: "../../public/tee.png",
+    image: "/tee.png",
     contact: {
       instagram: "https://www.instagram.com/torn_txe/",
       facebook: "https://web.facebook.com/pongsatorn.pongsatornn?locale=th_TH",
