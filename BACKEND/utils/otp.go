@@ -9,7 +9,7 @@ import (
 )
 
 func SendEmail(to string, otp string) error {
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Println("Error loading .env file:", err)
 	}

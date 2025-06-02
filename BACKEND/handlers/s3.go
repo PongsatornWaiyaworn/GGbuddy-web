@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/joho/godotenv"
 
 	"os"
 )
@@ -22,6 +23,10 @@ type UploadRequest struct {
 }
 
 func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
+	if err := godotenv.Load("../.env"); err != nil {
+		fmt.Println("Warning: .env file not loaded, using system env")
+	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return

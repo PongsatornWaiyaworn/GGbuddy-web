@@ -14,7 +14,7 @@ import (
 var jwtSecret []byte
 
 func init() {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../.env"); err != nil {
 		fmt.Println("Warning: .env file not loaded, using system env")
 	}
 	secret := os.Getenv("JWT_SECRET")

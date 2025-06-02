@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ggbuddy-server
+    env: go
+    rootDir: BACKEND
+    buildCommand: go build -o app
+    startCommand: ./app
+    autoDeploy: true
+
+  - type: web
+    name: ggbuddy
+    env: node
+    rootDir: GGbuddy
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    autoDeploy: true

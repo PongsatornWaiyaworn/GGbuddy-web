@@ -11,7 +11,7 @@ import (
 )
 
 func GenerateJWT(userID string) (string, error) {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../.env"); err != nil {
 		fmt.Println("Warning: .env file not loaded, using system env")
 	}
 	secretKey := os.Getenv("JWT_SECRET")
