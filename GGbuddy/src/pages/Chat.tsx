@@ -45,13 +45,25 @@ interface Profile {
 }
 
 const games = [
-  { id: '1', name: 'Valorant', icon: 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Valorant_logo_-_pink_color_version.svg'},
-  { id: '2', name: 'League of Legends', icon: 'https://static.tildacdn.com/tild6363-3366-4131-b062-323333633239/600px-League_of_Lege.png'},
-  { id: '3', name: 'Dota 2', icon: 'https://www.waca.or.jp/en/wp-content/uploads/2021/02/dota-2-2.png'},
-  { id: '4', name: 'PUBG', icon: 'https://cdn2.steamgriddb.com/icon/64c2d22899f32ccd5b3d9fca3ff04c9c/32/256x256.png'},
-  { id: '5', name: 'Apex Legends', icon: 'https://www.pngall.com/wp-content/uploads/13/Apex-Legends-Logo-PNG-Images.png'},
-  { id: '6', name: 'Counter Strike 2', icon: 'https://img.icons8.com/?size=512&id=x2J66ADPo3VZ&format=png'}
-];
+  { id: 'valorant', name: 'Valorant', icon: 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Valorant_logo_-_pink_color_version.svg' },
+  { id: 'lol', name: 'League of Legends', icon: 'https://static.tildacdn.com/tild6363-3366-4131-b062-323333633239/600px-League_of_Lege.png' },
+  { id: 'dota2', name: 'Dota 2', icon: 'https://www.waca.or.jp/en/wp-content/uploads/2021/02/dota-2-2.png' },
+  { id: 'pubg', name: 'PUBG', icon: 'https://cdn2.steamgriddb.com/icon/64c2d22899f32ccd5b3d9fca3ff04c9c/32/256x256.png' },
+  { id: 'apex', name: 'Apex Legends', icon: 'https://purepng.com/public/uploads/large/apex-legends-icon-xhl.png' },
+  { id: 'cs2', name: 'Counter Strike 2', icon: 'https://img.icons8.com/?size=512&id=x2J66ADPo3VZ&format=png' },
+  { id: 'overwatch2', name: 'Overwatch 2', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Overwatch_2_logo.svg/2560px-Overwatch_2_logo.svg.png' },
+  { id: 'fortnite', name: 'Fortnite', icon: 'https://static.vecteezy.com/system/resources/previews/027/127/477/non_2x/fortnite-logo-fortnite-icon-transparent-free-png.png' },
+  { id: 'minecraft', name: 'Minecraft', icon: 'https://www.freeiconspng.com/uploads/minecraft-icon-19.png' },
+  { id: 'rov', name: 'ROV', icon: 'https://play-lh.googleusercontent.com/UD3M7vEIbLINyar4sV70Sf8k8jxzYVQKvwKDCeHF5IeVgVfLjB1aivaSV0WdJGyZetw' },
+  { id: 'honkai', name: 'Honkai: Star Rail', icon: 'https://img.icons8.com/?size=512&id=gKHNPSTv94S9&format=png' },
+  { id: 'freefire', name: 'Free Fire', icon: 'https://upload.wikimedia.org/wikipedia/en/c/c5/Logo_of_Garena_Free_Fire.png' },
+  { id: 'hon', name: 'Heroes of Newerth', icon: 'https://www.neolutionesport.com/wp-content/uploads/2016/06/hon-logo-ban.png' },
+  { id: 'genshin', name: 'Genshin Impact', icon: 'https://cdn2.steamgriddb.com/icon/ffbab8235ddc5c0290ecd6ceccc0a61a.png' },
+  { id: 'mlbb', name: 'Mobile Legends: Bang Bang', icon: 'https://img2.clipart-library.com/28/mobile-legends-logo-clipart/mobile-legends-logo-clipart-0.png' },
+  { id: 'codm', name: 'Call of Duty: Mobile', icon: 'https://www.pngarts.com/files/8/Call-of-Duty-Mobile-Logo-PNG-Image.png' },
+  { id: 'teamfight', name: 'Teamfight Tactics', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Teamfight_Tactics_logo.svg/2560px-Teamfight_Tactics_logo.svg.png' },
+  { id: 'fo4', name: 'FIFA Online 4', icon: 'https://ssl.nexon.com/s2/game/fc/online/common/pc_app_icon.png' }
+];  
 
 const Chat = () => {
   const token = localStorage.getItem("token");
@@ -600,19 +612,21 @@ const Chat = () => {
                     return (
                       <div
                         key={index}
-                        className={`flex items-center px-[1vh] my-2 ${
+                        className={`flex px-[1vh] my-2 ${
                           isMyMessage ? "justify-end" : "justify-start"
                         }`}
-                      >
-                        {!isMyMessage && (
-                          <img
-                            src={profile?.img || "https://ggbuddy.s3.ap-southeast-2.amazonaws.com/example.png"}
-                            alt={profile?.display_name || "Unknown"}
-                            className="w-12 h-12 rounded-full border-2 border-gray-700 mr-2 cursor-pointer hover:border-blue-500 hover:scale-105 hover:shadow-lg transition duration-200"
-                            title={profile?.display_name || "Unknown"}
-                            onClick={() => setPopupProfile(profile)}
-                          />                        
-                        )}
+                      > 
+                        <div className="pt-4">
+                          {!isMyMessage && (
+                            <img
+                              src={profile?.img || "https://ggbuddy.s3.ap-southeast-2.amazonaws.com/example.png"}
+                              alt={profile?.display_name || "Unknown"}
+                              className="w-12 h-12 rounded-full border-2 border-gray-700 mr-2 cursor-pointer hover:border-blue-500 hover:scale-105 hover:shadow-lg transition duration-200"
+                              title={profile?.display_name || "Unknown"}
+                              onClick={() => setPopupProfile(profile)}
+                            />                        
+                          )}
+                        </div>
 
                         <div className="flex flex-col max-w-[70%]">
                           {!isMyMessage && (
