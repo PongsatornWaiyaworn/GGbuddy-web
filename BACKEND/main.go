@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"ggbuddy/database"
 	"ggbuddy/handlers"
@@ -21,10 +22,12 @@ func main() {
 		log.Println("No .env file found, using system env variables")
 	}
 
-	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
-	if allowedOrigin == "" {
+	allowedOriginEnv := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOriginEnv == "" {
 		log.Fatal("ALLOWED_ORIGIN not set in environment")
 	}
+
+	allowedOrigins := strings.Split(allowedOriginEnv, ",")
 
 	_, err = database.ConnectToMongoDB()
 	if err != nil {
@@ -62,7 +65,7 @@ func main() {
 	handlerWithAuth := authMiddleware(r)
 
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{allowedOrigin},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -72,7 +75,6 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "10000"
 		log.Fatal("PORT not set in environment")
 	}
 	fmt.Println("Server started at port:" + port)
