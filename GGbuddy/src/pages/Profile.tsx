@@ -46,17 +46,25 @@ const Profile = () => {
   const [showFullImage, setShowFullImage] = useState(false);
 
   const games = [
-    { id: 'valorant', name: 'Valorant' },
-    { id: 'dota2', name: 'Dota 2' },
-    { id: 'lol', name: 'League of Legends' },
-    { id: 'pubg', name: 'PUBG' },
-    { id: 'apex', name: 'Apex Legends' },
-    { id: 'overwatch', name: 'Overwatch 2' },
-    { id: 'cs2', name: 'Counter-Strike 2' },
-    { id: 'fortnite', name: 'Fortnite' },
-    { id: 'minecraft', name: 'Minecraft' },
-    { id: 'rov', name: 'ROV' }
-  ];
+    { id: 'valorant', name: 'Valorant', icon: 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Valorant_logo_-_pink_color_version.svg' },
+    { id: 'lol', name: 'League of Legends', icon: 'https://static.tildacdn.com/tild6363-3366-4131-b062-323333633239/600px-League_of_Lege.png' },
+    { id: 'dota2', name: 'Dota 2', icon: 'https://www.waca.or.jp/en/wp-content/uploads/2021/02/dota-2-2.png' },
+    { id: 'pubg', name: 'PUBG', icon: 'https://cdn2.steamgriddb.com/icon/64c2d22899f32ccd5b3d9fca3ff04c9c/32/256x256.png' },
+    { id: 'apex', name: 'Apex Legends', icon: 'https://purepng.com/public/uploads/large/apex-legends-icon-xhl.png' },
+    { id: 'cs2', name: 'Counter-Strike 2', icon: 'https://img.icons8.com/?size=512&id=x2J66ADPo3VZ&format=png' },
+    { id: 'overwatch2', name: 'Overwatch 2', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Overwatch_2_logo.svg/2560px-Overwatch_2_logo.svg.png' },
+    { id: 'fortnite', name: 'Fortnite', icon: 'https://static.vecteezy.com/system/resources/previews/027/127/477/non_2x/fortnite-logo-fortnite-icon-transparent-free-png.png' },
+    { id: 'minecraft', name: 'Minecraft', icon: 'https://www.freeiconspng.com/uploads/minecraft-icon-19.png' },
+    { id: 'rov', name: 'ROV', icon: 'https://play-lh.googleusercontent.com/UD3M7vEIbLINyar4sV70Sf8k8jxzYVQKvwKDCeHF5IeVgVfLjB1aivaSV0WdJGyZetw' },
+    { id: 'honkai', name: 'Honkai: Star Rail', icon: 'https://img.icons8.com/?size=512&id=gKHNPSTv94S9&format=png' },
+    { id: 'freefire', name: 'Free Fire', icon: 'https://upload.wikimedia.org/wikipedia/en/c/c5/Logo_of_Garena_Free_Fire.png' },
+    { id: 'hon', name: 'Heroes of Newerth', icon: 'https://www.neolutionesport.com/wp-content/uploads/2016/06/hon-logo-ban.png' },
+    { id: 'genshin', name: 'Genshin Impact', icon: 'https://cdn2.steamgriddb.com/icon/ffbab8235ddc5c0290ecd6ceccc0a61a.png' },
+    { id: 'mlbb', name: 'Mobile Legends: Bang Bang', icon: 'https://img2.clipart-library.com/28/mobile-legends-logo-clipart/mobile-legends-logo-clipart-0.png' },
+    { id: 'codm', name: 'Call of Duty: Mobile', icon: 'https://www.pngarts.com/files/8/Call-of-Duty-Mobile-Logo-PNG-Image.png' },
+    { id: 'teamfight', name: 'Teamfight Tactics', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Teamfight_Tactics_logo.svg/2560px-Teamfight_Tactics_logo.svg.png' },
+    { id: 'fo4', name: 'FIFA Online 4', icon: 'https://ssl.nexon.com/s2/game/fc/online/common/pc_app_icon.png' }
+  ];  
 
   const interestsList = [
     { id: 'relax', name: 'เล่นผ่อนคลาย' },
