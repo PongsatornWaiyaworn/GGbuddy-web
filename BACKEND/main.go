@@ -72,6 +72,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
+		port = "10000"
 		log.Fatal("PORT not set in environment")
 	}
 	fmt.Println("Server started at port:" + port)
