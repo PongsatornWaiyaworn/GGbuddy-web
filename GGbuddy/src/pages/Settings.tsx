@@ -558,7 +558,7 @@ const Settings = () => {
               ดำเนินการต่อ
             </Button>
           </DialogFooter>
-        </DialogContent>Add commentMore actions
+        </DialogContent>
       </Dialog>
 
       <Dialog open={showDialog_passwords} onOpenChange={setShowDialog_password}>
