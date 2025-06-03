@@ -36,7 +36,7 @@ const TeamFinder = () => {
     { id: 'dota2', name: 'Dota 2', icon: 'https://www.waca.or.jp/en/wp-content/uploads/2021/02/dota-2-2.png' },
     { id: 'pubg', name: 'PUBG', icon: 'https://cdn2.steamgriddb.com/icon/64c2d22899f32ccd5b3d9fca3ff04c9c/32/256x256.png' },
     { id: 'apex', name: 'Apex Legends', icon: 'https://purepng.com/public/uploads/large/apex-legends-icon-xhl.png' },
-    { id: 'cs2', name: 'Counter Strike 2', icon: 'https://portal.buff.game/static/b80d2ca8d74377ef1d4a34ac59cc3497/dacb9/the-confusion-about-cs2s-new-log.jpg' },
+    { id: 'cs2', name: 'Counter Strike 2', icon: '/Counter-Strike_2.png' },
     { id: 'overwatch2', name: 'Overwatch 2', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Overwatch_2_logo.svg/2560px-Overwatch_2_logo.svg.png' },
     { id: 'fortnite', name: 'Fortnite', icon: 'https://static.vecteezy.com/system/resources/previews/027/127/477/non_2x/fortnite-logo-fortnite-icon-transparent-free-png.png' },
     { id: 'minecraft', name: 'Minecraft', icon: 'https://www.freeiconspng.com/uploads/minecraft-icon-19.png' },
