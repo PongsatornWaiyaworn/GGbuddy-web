@@ -361,6 +361,7 @@ const TeamFinder = () => {
                           <SelectItem value="all" className="text-white">ทุกเพศ</SelectItem>
                           <SelectItem value="male" className="text-white">ชาย</SelectItem>
                           <SelectItem value="female" className="text-white">หญิง</SelectItem>
+                          <SelectItem value="lgbtq+" className="text-white">LQBTQ+</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
