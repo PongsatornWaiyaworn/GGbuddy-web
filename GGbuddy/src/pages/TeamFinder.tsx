@@ -377,7 +377,7 @@ const TeamFinder = () => {
                           <SelectItem value="all" className="text-white">อะไรก็ได้</SelectItem>
                           <SelectItem value="ranking" className="text-white">Ranking</SelectItem>
                           <SelectItem value="normal" className="text-white">ธรรมดา</SelectItem>
-                          <SelectItem value="active" className="text-white">โหมดพิเศษ</SelectItem>
+                          <SelectItem value="special" className="text-white">โหมดพิเศษ</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
