@@ -22,10 +22,8 @@ interface Message {
 interface Team {
   id: number;
   name: string;
-  game: string;
   members: string[];
   lastMessage?: string;
-  unread?: number;
   messages?: Message[];
   created_at?: string;
 }
@@ -559,16 +557,10 @@ const Chat = () => {
                           />
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-semibold text-gray-100 text-sm truncate max-w-[70%]">
+                              <h3 className="font-semibold text-gray-100 text-sm truncate max-w-[200px]">
                                 {team.name}
                               </h3>
-                              {team.unread && team.unread > 0 && (
-                                <Badge className="bg-gray-400 text-gray-900 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
-                                  {team.unread}
-                                </Badge>
-                              )}
                             </div>
-                            <p className="text-gray-400 text-xs mb-1 truncate">{team.game}</p>
                             <div className="flex items-center gap-1 mt-2 text-gray-400 text-xs">
                               <Users size={14} />
                               <span>{team.members.length} คน</span>
