@@ -23,6 +23,16 @@ const Settings = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const meemail = localStorage.getItem("email");
+  const [pendingAction, setPendingAction] = useState<null | "changePassword" | "deleteAccount">(null);
+  const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [showDialog_passwords, setShowDialog_password] = useState(false);
+  const [showDialog_delete, setShowDialog_delete] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [waitingForOtp, setWaitingForOtp] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 นาที = 300 วินาที
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -41,20 +51,6 @@ const Settings = () => {
       .catch(err => console.error("โหลดข้อมูลผู้ใช้ที่ถูกบล็อกล้มเหลว", err));
   }, [username]); 
    
-
-  const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
-  const [showDialog, setShowDialog] = useState(false);
-  const [showDialog_passwords, setShowDialog_password] = useState(false);
-  const [showDialog_delete, setShowDialog_delete] = useState(false);
-
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [otpError, setOtpError] = useState("");
-
-  const [waitingForOtp, setWaitingForOtp] = useState(false);
-
-  const [timeLeft, setTimeLeft] = useState(300); // 5 นาที = 300 วินาที
-
   useEffect(() => {
     if (!waitingForOtp) {
       setTimeLeft(300); 
@@ -85,15 +81,10 @@ const Settings = () => {
     setShowDialog(true);
   };
 
-  const executeConfirmedAction = () => {
-    if (confirmAction) confirmAction();
-    setShowDialog(false);
-  };
-
   const executeConfirmedAction_password = () => {
     if (confirmAction) confirmAction();
-    sendOtp()
     setShowDialog_password(false);
+    sendOtp()
   };
 
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
@@ -125,7 +116,7 @@ const Settings = () => {
       if (!res.ok) {
         const data = await res.json();
         toast({
-          description: data.message || "รหัสผ่านปัจจุบันไม่ถูกต้อง",
+          description: "รหัสผ่านปัจจุบันไม่ถูกต้อง",
         });
         return false;
       }
@@ -139,6 +130,56 @@ const Settings = () => {
       return false;
     }
   };
+
+  const changePassword = async () => {
+    const email = localStorage.getItem("identifier");
+    if (!email) {
+      toast({
+        description: "ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่",
+      });
+      return;
+    }
+  
+    if (passwords.new !== passwords.confirm) {
+      toast({
+        description: "รหัสผ่านใหม่ไม่ตรงกัน",
+      });
+      return;
+    }
+  
+    try {
+      const res = await fetch(`${API_BASE_URL}/change-password`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: email,
+          new_password: passwords.new,
+        }),
+      });
+  
+      if (!res.ok) {
+        throw new Error("เปลี่ยนรหัสผ่านไม่สำเร็จ");
+      }
+  
+      toast({
+        description: "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว",
+      });
+  
+      setPasswords({ current: "", new: "", confirm: "" });
+      setOtp("");
+      setOtpSent(false);
+      setWaitingForOtp(false);
+  
+    } catch (error) {
+      toast({
+        description: "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน",
+      });
+      console.error(error);
+    }
+  };  
   
   const sendOtp = async () => {
     const email = localStorage.getItem("identifier");
@@ -165,6 +206,8 @@ const Settings = () => {
       setOtpSent(true);
       setWaitingForOtp(true);
       setShowDialog_password(false);
+      setShowDialog_delete(false);
+
     } catch (error) {
       toast({
         description: "เกิดข้อผิดพลาดในการส่ง OTP",
@@ -191,58 +234,27 @@ const Settings = () => {
         },
         body: JSON.stringify({ email: email, code: otp }),
       });
+  
       if (!res.ok) {
         setOtpError("OTP ไม่ถูกต้อง");
         return;
       }
+  
       setOtpError("");
-      await changePassword();
-    } catch (error) {
-      setOtpError("เกิดข้อผิดพลาดในการยืนยัน OTP");
-      console.error(error);
-    }
-  };
   
-  const changePassword = async () => {
-    const email = localStorage.getItem("identifier");
-    if (!email) {
-      toast({
-        description: "ไม่พบอีเมลของคุณ กรุณาเข้าสู่ระบบใหม่",
-      });
-      return;
-    }
-    if (passwords.new !== passwords.confirm) {
-      toast({
-        description: "รหัสผ่านใหม่ไม่ตรงกัน",
-      });
-      return;
-    }
+      if (pendingAction === "changePassword") {
+        await changePassword();
+      } else if (pendingAction === "deleteAccount") {
+        await handleDeleteAccount(username)
+      }
   
-    try {
-      const res = await fetch(`${API_BASE_URL}/change-password`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          identifier: email,
-          new_password: passwords.new,
-        }),
-      });
-      if (!res.ok) throw new Error("เปลี่ยนรหัสผ่านไม่สำเร็จ");
-  
-      toast({
-        description: "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว",
-      });
-      setPasswords({ current: "", new: "", confirm: "" });
+      setPendingAction(null);
       setOtp("");
       setOtpSent(false);
       setWaitingForOtp(false);
+  
     } catch (error) {
-      toast({
-        description: "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน",
-      });
+      setOtpError("เกิดข้อผิดพลาดในการยืนยัน OTP");
       console.error(error);
     }
   };
@@ -259,7 +271,7 @@ const Settings = () => {
   
     const isValid = await checkCurrentPassword();
     if (!isValid) return;
-  
+    setPendingAction("changePassword");
     setShowDialog_password(true);
   };
   
@@ -337,14 +349,69 @@ const Settings = () => {
         description: error.message || "เกิดข้อผิดพลาดในการลบบัญชี",
       });
     }
-  };
+  }; 
 
   const onConfirmDelete = async () => {
-    await handleDeleteAccount(username);
+    setPendingAction("deleteAccount");
     setShowDialog_delete(false);
-  };
-
-  return (
+    sendOtp();
+  };  
+  
+  return waitingForOtp ? (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          verifyOtp();
+        }}
+        className="space-y-6 max-w-md w-full bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700"
+      >
+        <h2 className="text-2xl font-bold text-center text-white">ยืนยัน OTP</h2>
+  
+        <div>
+          <Label htmlFor="otp" className="text-white text-sm font-medium block mb-1">
+            กรอก OTP ที่ได้รับทางอีเมล
+          </Label>
+          <Input
+            id="otp"
+            type="text"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            className="bg-gray-700 border border-gray-600 text-white rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
+          {otpError && <p className="text-red-500 text-sm mt-1">{otpError}</p>}
+        </div>
+  
+        <p className="text-white text-sm ">
+          เวลาที่เหลือ: <span className="font-semibold">{formatTime(timeLeft)}</span>
+        </p>
+  
+        <div className="flex justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              setWaitingForOtp(false);
+              setOtp("");
+              setOtpError("");
+              setPendingAction(null);
+              setTimeLeft(300);
+            }}
+            className="bg-red-500 hover:bg-red-600 transition text-white font-semibold px-4 py-2 rounded-lg w-full"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 transition text-white font-semibold px-4 py-2 rounded-lg w-full"
+          >
+            ยืนยัน OTP
+          </button>
+        </div>
+      </form>
+    </div>
+  ) :
+   (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
       <Sidebar />
       <main className="flex-1 overflow-auto p-6">
@@ -404,57 +471,6 @@ const Settings = () => {
                 </form>
               )}
 
-              {/* กรอก OTP */}
-              {waitingForOtp && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    verifyOtp();
-                  }}
-                  className="space-y-4 max-w-md"
-                >
-                  <Label htmlFor="otp" className="text-white">
-                    กรอก OTP ที่ได้รับทางอีเมล
-                  </Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="bg-gray-800 border-gray-600 text-white"
-                    required
-                  />
-                  {otpError && <p className="text-red-500 text-sm">{otpError}</p>}
-                  {waitingForOtp && (
-                    <p className="text-white font-semibold text-sm mb-2">
-                      เวลาที่เหลือ: {formatTime(timeLeft)}
-                    </p>
-                  )}
-
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      className="bg-gradient-to-r from-gray-400 to-gray-400 hover:from-gray-500 hover:to-gray-500 text-white px-4 py-2 rounded font-medium shadow"
-                      onClick={() => {
-                        setWaitingForOtp(false);
-                        setOtp("");
-                        setOtpError("");
-                        setTimeLeft(300);
-                      }}
-                    >
-                      ยกเลิก
-                    </button>
-
-                    <button
-                      type="submit"
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded font-medium shadow"
-                    >
-                      ยืนยัน OTP
-                    </button>
-                  </div>
-
-                </form>
-              )}
             </CardContent>
           </Card>
 
@@ -500,7 +516,6 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-
           <Card className="bg-white/10 backdrop-blur-lg border-white/20">
             <CardHeader>
               <CardTitle className="text-white">การจัดการบัญชี</CardTitle>
@@ -521,26 +536,6 @@ const Settings = () => {
       </main>
 
       {/* Confirm Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>คุณแน่ใจหรือไม่?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-gray-600">โปรดยืนยันการดำเนินการนี้</p>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
-              ยกเลิก
-            </Button>
-            <Button
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={executeConfirmedAction}
-            >
-              ดำเนินการต่อ
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={showDialog_passwords} onOpenChange={setShowDialog_password}>
         <DialogContent>
           <DialogHeader>
