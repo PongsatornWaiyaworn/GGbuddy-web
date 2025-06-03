@@ -779,7 +779,13 @@ const Chat = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-400 text-sm uppercase mb-1">เพศ</h3>
-                  <p>{popupProfile.gender || "-"}</p>
+                  <p>{popupProfile.gender === "male"
+                      ? "ชาย"
+                      : popupProfile.gender === "female"
+                      ? "หญิง"
+                      : popupProfile.gender === "LGBTQ+"
+                      ? "LGBTQ+"
+                      : "-"}</p>
                 </div>
                 <div className="col-span-2">
                   <h3 className="font-semibold text-gray-400 text-sm uppercase mb-1">Bio</h3>
