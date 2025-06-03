@@ -541,7 +541,6 @@ const Settings = () => {
       </main>
 
       {/* Confirm Dialog */}
-      {/* Confirm Dialog */}Add commentMore actions
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
