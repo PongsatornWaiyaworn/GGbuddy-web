@@ -91,6 +91,11 @@ const Settings = () => {
     setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const executeConfirmedAction = () => {
+    if (confirmAction) confirmAction();
+    setShowDialog(false);
+  };
+
   const checkCurrentPassword = async (): Promise<boolean> => {
     const email = localStorage.getItem("identifier");
     if (!email) {
@@ -536,6 +541,27 @@ const Settings = () => {
       </main>
 
       {/* Confirm Dialog */}
+      {/* Confirm Dialog */}Add commentMore actions
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>คุณแน่ใจหรือไม่?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">โปรดยืนยันการดำเนินการนี้</p>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowDialog(false)}>
+              ยกเลิก
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={executeConfirmedAction}
+            >
+              ดำเนินการต่อ
+            </Button>
+          </DialogFooter>
+        </DialogContent>Add commentMore actions
+      </Dialog>
+
       <Dialog open={showDialog_passwords} onOpenChange={setShowDialog_password}>
         <DialogContent>
           <DialogHeader>

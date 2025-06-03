@@ -494,7 +494,7 @@ const Register = () => {
                             id="age"
                             type="number"
                             min={0}
-                            max={150}
+                            max={100}
                             value={profile.age}
                             onChange={(e) => setProfile({ ...profile, age: Number(e.target.value) })}
                             disabled={!isEditing}
