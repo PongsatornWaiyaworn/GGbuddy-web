@@ -22,6 +22,7 @@ const teamMembers = [
 ];
 
 const Team = () => {
+  localStorage.setItem("selectedTeam", null);
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#1e1e2f] via-[#10101a] to-black text-white">
       <div className="flex flex-1 w-full">

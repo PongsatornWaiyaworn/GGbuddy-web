@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
 import { Settings as SettingsIcon, Shield, UserX, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -33,7 +33,8 @@ const Settings = () => {
   const [otpError, setOtpError] = useState("");
   const [waitingForOtp, setWaitingForOtp] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 นาที = 300 วินาที
-
+  localStorage.setItem("selectedTeam", null);
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     fetch(`${API_BASE_URL}/blocked-list/${username}`, {

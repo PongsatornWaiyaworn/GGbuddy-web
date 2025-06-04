@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {

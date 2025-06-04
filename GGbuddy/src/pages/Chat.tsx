@@ -20,7 +20,7 @@ interface Message {
 }
 
 interface Team {
-  id: number;
+  id: string;
   name: string;
   members: string[];
   lastMessage?: string;
@@ -31,7 +31,7 @@ interface Team {
 interface Profile {
   img?: string;
   display_name?: string;
-  age?: number;
+  age?: string;
   gender?: string;
   bio?: string;
   games?: string[];
@@ -66,7 +66,7 @@ const games = [
 const Chat = () => {
   const token = localStorage.getItem("token");
   const [teams, setTeams] = useState<Team[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [ws, setWs] = useState<WebSocket | null>(null);
   const username = localStorage.getItem("username") || "guest";
@@ -74,6 +74,7 @@ const Chat = () => {
   const [memberProfiles, setMemberProfiles] = useState<{ [key: string]: Profile }>({});
   const [popupProfile, setPopupProfile] = useState(null);
   const closePopup = () => setPopupProfile(null);
+  const storedTeamId = localStorage.getItem("selectedTeam")
   const [showConfirmBlock, setShowConfirmBlock] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const selectedTeamData = teams.find((team) => team.id === selectedTeam);
@@ -204,7 +205,6 @@ const Chat = () => {
     }
   };
   
-  
   useEffect(() => {
     scrollToBottom();
   }, [selectedTeamData?.messages?.length]);
@@ -239,13 +239,18 @@ const Chat = () => {
         );
         setTeams(sortedTeams);
         if (sortedTeams.length > 0) {
-          setSelectedTeam(sortedTeams[0].id);
+          const matchedTeam = sortedTeams.find(team => team.id === storedTeamId);
+          if (matchedTeam) {
+            setSelectedTeam(matchedTeam.id);
+          } else {
+            setSelectedTeam(sortedTeams[0].id); 
+          }
         }
+          
       })
       .catch((err) => console.error("Error fetching chats:", err));
   }, [username]);
   
-
   useEffect(() => {
     if (selectedTeam === null) return;
   
@@ -448,6 +453,10 @@ const Chat = () => {
       })
       .replace(" ", "");
   };
+
+  if (selectedTeam !== null && selectedTeam !== undefined) {
+    localStorage.setItem('selectedTeam', selectedTeam.toString());
+  }
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-950">

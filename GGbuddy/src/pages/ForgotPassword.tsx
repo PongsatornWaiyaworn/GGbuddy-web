@@ -18,6 +18,7 @@ const ForgotPassword = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  localStorage.setItem("selectedTeam", null);
 
   useEffect(() => {
     if (timeLeft <= 0) return;

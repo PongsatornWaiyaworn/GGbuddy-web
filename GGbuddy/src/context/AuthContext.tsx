@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("username");
     localStorage.removeItem("email");
     localStorage.removeItem("gender");
+    localStorage.removeItem("selectedTeam");
     setIsLoggedIn(false);
   };
 

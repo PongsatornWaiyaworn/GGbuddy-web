@@ -14,31 +14,34 @@ import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import Team from "./pages/Team";
 
-import { AuthProvider } from "./AuthContext";
+import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationProvider"; 
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/team-finder" element={<TeamFinder />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/team-dev" element={<Team />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <BrowserRouter> {/* 👈 ย้ายขึ้นมาครอบทุกอย่างที่ใช้ React Router */}
+        <NotificationProvider> {/* ✅ อยู่ภายใน BrowserRouter แล้ว */}
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/team-finder" element={<TeamFinder />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/team-dev" element={<Team />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </NotificationProvider>
+      </BrowserRouter>
     </AuthProvider>
   </QueryClientProvider>
 );
