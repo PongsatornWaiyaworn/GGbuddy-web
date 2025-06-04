@@ -166,6 +166,7 @@ const TeamFinder = () => {
         setIsMatching(false);
         setCountdown(300);
         navigate('/chat');
+        window.location.reload();
       }
     };    
 
