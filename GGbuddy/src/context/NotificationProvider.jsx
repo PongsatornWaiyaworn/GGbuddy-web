@@ -24,25 +24,6 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!username || !token) return;
   
-    fetch(`${API_BASE_URL}/blocked-list/${username}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
-        const blockedUsernames = data.map(entry => entry.BlockedUsername);
-        setBlockedUsers(blockedUsernames);
-      })
-      .catch(err => console.error("โหลดข้อมูลผู้ใช้ที่ถูกบล็อกล้มเหลว", err));
-  }, [username]);  
-
-  useEffect(() => {
-    if (!username || !token) return;
-  
     let wsList = [];
   
     const connectSockets = async () => {
@@ -67,9 +48,28 @@ export const NotificationProvider = ({ children }) => {
   
           ws.onmessage = (event) => {
             try {
+              fetch(`${API_BASE_URL}/blocked-list/${username}`, {
+                method: 'GET',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                credentials: 'include',
+              })
+                .then(res => res.json())
+                .then(data => {
+                  const blockedUsernames = data.map(entry => entry.BlockedUsername);
+                  setBlockedUsers(blockedUsernames);
+                })
+                .catch(err => console.error("โหลดข้อมูลผู้ใช้ที่ถูกบล็อกล้มเหลว", err));
+                
               const data = JSON.parse(event.data);
               const selectedTeam = localStorage.getItem("selectedTeam");
-              if (data.group_id && data.content && data.sender_id !== username && data.group_id !== selectedTeam && !blockedUsers.includes(data.sender_id)) {
+              console.log(blockedUsers, data.sender_id)
+              const isBlocked = blockedUsers.some(user => user === data.sender_id);
+
+              console.log(isBlocked)
+              if (data.group_id && data.content && data.sender_id !== username && data.group_id !== selectedTeam && !isBlocked) {
                 const audio = new Audio("/level-up-191997.mp3");
                 audio.play();
   
