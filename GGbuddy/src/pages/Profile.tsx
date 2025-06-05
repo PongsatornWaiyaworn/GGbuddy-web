@@ -178,14 +178,18 @@ const Profile = () => {
       toast({
         title: "อัปเดตข้อมูลสำเร็จ",
         description: "ข้อมูลโปรไฟล์ของคุณได้รับการอัปเดตเรียบร้อยแล้ว",
-
       });
       
       setIsEditing(false);
     } catch (err) {
       console.error('Error saving profile:', err);
     }
-  };
+  };  
+
+  const handlecancle = async () => {
+      setIsEditing(false)
+      window.location.reload()
+  }
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
@@ -439,7 +443,7 @@ const Profile = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => handlecancle()}
                       className="flex-1 bg-red-600 border border-red-800 text-white hover:bg-red-700 transition-colors duration-200 rounded-md"
                     >
                       ยกเลิก

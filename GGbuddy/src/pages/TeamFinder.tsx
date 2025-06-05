@@ -8,6 +8,7 @@ import Sidebar from "@/components/Sidebar";
 import { Users, Filter } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL_SOCKET = import.meta.env.VITE_API_BASE_URL_SOCKET;
 
@@ -214,8 +215,12 @@ const TeamFinder = () => {
     if (!isMatching) return;
 
     if (countdown <= 0) {
-      alert("จับคู่ไม่สำเร็จภายใน 5 นาที");
+      toast({
+        title: "หาเพื่อนนานเกินไป",
+        description: "เวลานี้อาจยังไม่เหมาะ กรุณาลองใหม่อีกครั้งภายหลัง",
+      });
       stopMatching();
+      setSelectedGame(null);
       return;
     }
 
