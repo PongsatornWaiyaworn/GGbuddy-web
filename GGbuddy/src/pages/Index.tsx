@@ -95,7 +95,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <p>© {new Date().getFullYear()} GGbuddy. All rights reserved.</p>
           <p className="mt-2">
-            Made with by <a href="/team-dev" className="underline hover:text-white">GGbuddy Team</a>
+            Made with by <a href="/" className="underline hover:text-white">GGbuddy Team</a>
           </p>
         </div>
       </footer>
